@@ -59,6 +59,7 @@ LOCAL_SRC_FILES := \
     Source/common/SC_StringParser.cpp \
     Source/common/SC_AllocPool.cpp \
     Source/libc/glob.c \
-    Source/fromscau/OSCMessages.cpp 
+    Source/fromscau/OSCMessages.cpp \
+    Source/server/SC_Android.cpp 
 
 include $(BUILD_SHARED_LIBRARY)

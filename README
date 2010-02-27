@@ -1,0 +1,17 @@
+
+SuperCollider is copyright James McCartney and many different authors
+Published under the terms of the GNU GPL, version 2 or later. Some code is GPL3+ ...
+
+
+
+ An early exploration of porting SuperCollider's scsynth to Android using the android NDK (JNI).
+
+
+
+
+DAN NOTE:
+
+Note that this is NOT how I think the SC android port should be structured. The code is really just me "thinking out loud" and getting the bare bones working of hooking up scsynth with the Java native callbacks and outputting sound.
+
+This version does some things badly: most notably scsynth should probably be a Service rather than an Activity, and it should offer (a subset of) its OSC commands as an interface defined using AIDL so that activities can send intents to it.
+
