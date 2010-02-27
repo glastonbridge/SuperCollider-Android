@@ -57,8 +57,10 @@
 # include <sys/mman.h>
 #endif
 
-#include <android/log.h>
-#include <jni.h>
+#ifdef SC_ANDROID
+	#include <android/log.h>
+	#include <jni.h>
+#endif
 
 InterfaceTable gInterfaceTable;
 PrintFunc gPrint = 0;
@@ -1297,6 +1299,7 @@ int scprintf(const char *fmt, ...)
 	else return vprintf(fmt, vargs);
 }
 
+#ifdef SC_ANDROID
 const char * sc_logtag = "libscsynth";
 void scvprintf_android(const char *fmt, va_list ap);
 void scvprintf_android(const char *fmt, va_list ap){
@@ -1336,4 +1339,5 @@ jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 
 	return JNI_VERSION_1_4;
 }
+#endif
 

@@ -25,6 +25,7 @@ LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libc
 LOCAL_CFLAGS    += -DSC_AUDIO_API=NONE
 LOCAL_CFLAGS    += -DNO_LIBSNDFILE
 LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
 # ajs 20091229: the line below reeks of unintended consequences
 LOCAL_CFLAGS    += -D__GCC__
 LOCAL_SRC_FILES := \
