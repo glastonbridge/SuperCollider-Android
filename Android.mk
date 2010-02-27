@@ -21,6 +21,7 @@ LOCAL_MODULE    := scsynth
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/fromscau
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libc
 LOCAL_CFLAGS    += -DSC_AUDIO_API=NONE
 LOCAL_CFLAGS    += -DNO_LIBSNDFILE
@@ -57,6 +58,7 @@ LOCAL_SRC_FILES := \
     Source/common/SC_DirUtils.cpp \
     Source/common/SC_StringParser.cpp \
     Source/common/SC_AllocPool.cpp \
-    Source/libc/glob.c 
+    Source/libc/glob.c \
+    Source/fromscau/OSCMessages.cpp 
 
 include $(BUILD_SHARED_LIBRARY)

@@ -60,6 +60,7 @@
 #ifdef SC_ANDROID
 	#include <android/log.h>
 	#include <jni.h>
+	#include "OSCMessages.h"
 #endif
 
 InterfaceTable gInterfaceTable;
@@ -1299,6 +1300,8 @@ int scprintf(const char *fmt, ...)
 	else return vprintf(fmt, vargs);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 #ifdef SC_ANDROID
 const char * sc_logtag = "libscsynth";
 void scvprintf_android(const char *fmt, va_list ap);
@@ -1313,6 +1316,67 @@ extern "C" void scsynth_android_initlogging();
 void scsynth_android_initlogging() {
 	SetPrintFunc((PrintFunc) *scvprintf_android);
 	scprintf("SCSYNTH->ANDROID logging active\n");
+}
+
+void* scThreadFunc(void* arg);
+void* scThreadFunc(void* arg)
+{
+    World* world  = (World*)arg;
+    World_WaitForQuit(world);
+    return 0;
+}
+void null_reply_func(struct ReplyAddress* /*addr*/, char* /*msg*/, int /*size*/);
+
+
+static World * world;
+
+extern "C" int scsynth_android_start(){
+	WorldOptions options = kDefaultWorldOptions;
+	// Reduce things down a bit for lower-spec - these are all open for review
+	options.mNumBuffers  = 512;
+	options.mMaxGraphDefs = 512;
+	options.mMaxWireBufs = 512;
+	options.mNumAudioBusChannels = 32;
+	options.mNumInputBusChannels  = 2;
+	options.mNumOutputBusChannels = 2;
+	options.mRealTimeMemorySize = 512;
+	options.mPreferredSampleRate = 22050;
+	options.mNumRGens = 16;
+	options.mLoadGraphDefs = 1; // TODO: decide whether to load from folders or directly
+	
+	// Similar to SCProcess:startup :
+	pthread_t scThread;
+	OSCMessages messages;
+
+    world = World_New(&options);
+    //world->mDumpOSC=2;
+    if (world) {
+        pthread_create (&scThread, NULL, scThreadFunc, (void*)world);
+    }
+    if (world->mRunning){
+        small_scpacket packet = messages.initTreeMessage();
+        World_SendPacket(world, 16, (char*)packet.buf, null_reply_func);
+        return 0;
+    }else{
+    	return 1;
+    }
+}
+
+extern "C" void scsynth_android_makeSynth(const char* synthName){
+    if (world->mRunning){
+        OSCMessages messages;
+        small_scpacket packet;
+        size_t messageSize =  messages.createSynthMessage(&packet, synthName);
+        World_SendPacket(world,messageSize,  (char*)packet.buf, null_reply_func);
+    }
+}
+
+extern "C" void scsynth_android_quit(){
+    OSCMessages messages;
+    if (world && world->mRunning){
+         small_scpacket packet = messages.quitMessage();
+         World_SendPacket(world, 8,(char*)packet.buf, null_reply_func);
+    }
 }
 
 extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
@@ -1334,6 +1398,9 @@ jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 	static JNINativeMethod methods[] = {
 		// name, signature, function pointer
 		{ "scsynth_android_initlogging", "()V", (void *) &scsynth_android_initlogging },
+		{ "scsynth_android_start"      , "()I", (void *) &scsynth_android_start       },
+		{ "scsynth_android_makeSynth"  , "()V", (void *) &scsynth_android_makeSynth   },
+		{ "scsynth_android_quit"       , "()V", (void *) &scsynth_android_quit        },
 	};
 	env->RegisterNatives(cls, methods, sizeof(methods)/sizeof(methods[0]) );
 
