@@ -82,6 +82,25 @@ extern "C" int scsynth_android_start(){
     }
 }
 
+/* the callback that java uses to ask scsynth for some sound */
+JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyteArray arr )
+{
+	jbyte *carr;
+	jint i, len;
+	carr = (env)->GetByteArrayElements(arr, NULL);
+	len = (env)->GetArrayLength(arr);
+	if(carr == NULL){
+		return 1; /* exception */
+	}
+	for(i=0; i<len; ++i){
+		// TODO some decent audio...
+		carr[i] = (i * 3) % 256;
+	}
+	(env)->ReleaseByteArrayElements(arr, carr, 0);
+	return 0;
+}
+
+
 extern "C" void scsynth_android_makeSynth(const char* synthName){
     if (world->mRunning){
         OSCMessages messages;
@@ -117,10 +136,11 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 	}
 	static JNINativeMethod methods[] = {
 		// name, signature, function pointer
-		{ "scsynth_android_initlogging", "()V", (void *) &scsynth_android_initlogging },
-		{ "scsynth_android_start"      , "()I", (void *) &scsynth_android_start       },
-		{ "scsynth_android_makeSynth"  , "()V", (void *) &scsynth_android_makeSynth   },
-		{ "scsynth_android_quit"       , "()V", (void *) &scsynth_android_quit        },
+		{ "scsynth_android_initlogging", "()V",   (void *) &scsynth_android_initlogging },
+		{ "scsynth_android_start"      , "()I",   (void *) &scsynth_android_start       },
+		{ "scsynth_android_genaudio"   , "([B)I", (void *) &scsynth_android_genaudio    },
+		{ "scsynth_android_makeSynth"  , "()V",   (void *) &scsynth_android_makeSynth   },
+		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },
 	};
 	env->RegisterNatives(cls, methods, sizeof(methods)/sizeof(methods[0]) );
 

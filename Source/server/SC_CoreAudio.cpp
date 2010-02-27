@@ -2734,6 +2734,9 @@ bool SC_AndroidJNIAudioDriver::DriverStart()
 	if(mWorld->mVerbosity >= 0){
 		scprintf("->SC_CoreAudioDriver::DriverStart\n");
 	}
+	
+	// TODO: should this exert control over the java audio code starting?
+	
 	if(mWorld->mVerbosity >= 0){
 		scprintf("<-SC_CoreAudioDriver::DriverStart\n");
 	}
@@ -2745,7 +2748,11 @@ bool SC_AndroidJNIAudioDriver::DriverStop()
 	if(mWorld->mVerbosity >= 0){
 		scprintf("->SC_CoreAudioDriver::DriverStop\n");
 	}
-
+	
+	
+	// TODO: send a message back to java to say stop the audio loop
+	
+	
 	if(mWorld->mVerbosity >= 0){
 		scprintf("<-SC_CoreAudioDriver::DriverStop\n");
 	}
