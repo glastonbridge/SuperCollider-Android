@@ -26,11 +26,10 @@
 #include <jni.h>
 #include "OSCMessages.h"
 
-const char * sc_logtag = "libscsynth";
 void scvprintf_android(const char *fmt, va_list ap){
 	// note, currently no way to choose log level of scsynth messages so all set as 'debug'
 	//  #ifndef NDEBUG
-	__android_log_vprint(ANDROID_LOG_DEBUG, sc_logtag, fmt, ap);
+	__android_log_vprint(ANDROID_LOG_DEBUG, "libscsynth", fmt, ap);
 	//  #endif
 }
 
@@ -113,7 +112,7 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 	jclass  cls;
 	cls = env->FindClass("uk/co/mcld/dabble/GlastoCollider1/DanAudioThread"); //TODO sth more generic
 	if (cls == NULL) {
-		__android_log_print(ANDROID_LOG_DEBUG, sc_logtag, "Dan - JNI_Onload FindClass failed");
+		__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "JNI_Onload FindClass failed");
 		return JNI_ERR;
 	}
 	static JNINativeMethod methods[] = {

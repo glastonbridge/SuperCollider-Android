@@ -2706,3 +2706,40 @@ void initializeScheduler()
 }
 
 #endif // SC_AUDIO_API_INNERSC_VST
+
+
+// =====================================================================
+// SC_AUDIO_API_ANDROIDJNI
+#if SC_AUDIO_API == SC_AUDIO_API_ANDROIDJNI
+
+int64 gOSCoffset = 0;
+
+static inline int64 GetCurrentOSCTime()
+{
+	struct timeval tv;
+	uint64 s, f;
+	gettimeofday(&tv, 0);
+	s = (uint64)tv.tv_sec + (uint64)kSECONDS_FROM_1900_to_1970;
+	f = (uint64)((double)tv.tv_usec * kMicrosToOSCunits);
+
+	return (s << 32) + f;
+}
+
+int64 oscTimeNow()
+{
+	return GetCurrentOSCTime();
+}
+
+int32 server_timeseed()
+{
+	int64 time = GetCurrentOSCTime();
+	return Hash((int32)(time >> 32) + Hash((int32)time));
+}
+
+void initializeScheduler()
+{
+	gOSCoffset = GetCurrentOSCTime();
+}
+
+#endif  // SC_AUDIO_API == SC_AUDIO_API_ANDROIDJNI
+

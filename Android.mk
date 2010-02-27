@@ -23,7 +23,7 @@ LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/fromscau
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libc
-LOCAL_CFLAGS    += -DSC_AUDIO_API=NONE
+# rm - now gets an android-specific def in the code LOCAL_CFLAGS    += -DSC_AUDIO_API=NONE
 LOCAL_CFLAGS    += -DNO_LIBSNDFILE
 LOCAL_CFLAGS    += -DSC_LINUX
 LOCAL_CFLAGS    += -DSC_ANDROID
