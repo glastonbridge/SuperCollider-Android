@@ -58,6 +58,7 @@
 #endif
 
 #include <android/log.h>
+#include <jni.h>
 
 InterfaceTable gInterfaceTable;
 PrintFunc gPrint = 0;
@@ -1299,15 +1300,40 @@ int scprintf(const char *fmt, ...)
 const char * sc_logtag = "libscsynth";
 void scvprintf_android(const char *fmt, va_list ap);
 void scvprintf_android(const char *fmt, va_list ap){
-  // note, currently no way to choose log level of scsynth messages so all set as 'debug'
-  //  #ifndef NDEBUG
-  __android_log_vprint(ANDROID_LOG_DEBUG, sc_logtag, fmt, ap);
-  //  #endif
+	// note, currently no way to choose log level of scsynth messages so all set as 'debug'
+	//  #ifndef NDEBUG
+	__android_log_vprint(ANDROID_LOG_DEBUG, sc_logtag, fmt, ap);
+	//  #endif
 }
 
 extern "C" void scsynth_android_initlogging();
 void scsynth_android_initlogging() {
-  SetPrintFunc((PrintFunc) *scvprintf_android);
-  scprintf("SCSYNTH->ANDROID logging active\n");
+	SetPrintFunc((PrintFunc) *scvprintf_android);
+	scprintf("SCSYNTH->ANDROID logging active\n");
+}
+
+extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
+jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
+
+	// btw storing JavaVM *vm in a static variable is very common. i don't need it so far yet.
+	JNIEnv* env;
+	if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
+		return -1;
+
+	/* get class with (*env)->FindClass */
+	jclass  cls;
+	cls = env->FindClass("uk/co/mcld/dabble/GlastoCollider1/DanAudioThread");
+	if (cls == NULL) {
+		__android_log_print(ANDROID_LOG_DEBUG, sc_logtag, "Dan - JNI_Onload FindClass failed");
+		return JNI_ERR;
+	}
+	/* register methods with (*env)->RegisterNatives */
+	static JNINativeMethod methods[] = {
+		// name, signature, function pointer
+		{ "scsynth_android_initlogging", "()V", (void *) &scsynth_android_initlogging },
+	};
+	env->RegisterNatives(cls, methods, sizeof(methods)/sizeof(methods[0]) );
+
+	return JNI_VERSION_1_4;
 }
 
