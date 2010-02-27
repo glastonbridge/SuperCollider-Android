@@ -2712,6 +2712,47 @@ void initializeScheduler()
 // SC_AUDIO_API_ANDROIDJNI
 #if SC_AUDIO_API == SC_AUDIO_API_ANDROIDJNI
 
+SC_AndroidJNIAudioDriver::SC_AndroidJNIAudioDriver(struct World *inWorld)
+		: SC_AudioDriver(inWorld)
+{
+}
+
+SC_AndroidJNIAudioDriver::~SC_AndroidJNIAudioDriver()
+{
+}
+
+bool SC_AndroidJNIAudioDriver::DriverSetup(int* outNumSamplesPerCallback, double* outSampleRate)
+{
+	if(mWorld->mVerbosity >= 0){
+		scprintf("<-SC_CoreAudioDriver::Setup world %08X\n", mWorld);
+	}
+	return true;
+}
+
+bool SC_AndroidJNIAudioDriver::DriverStart()
+{
+	if(mWorld->mVerbosity >= 0){
+		scprintf("->SC_CoreAudioDriver::DriverStart\n");
+	}
+	if(mWorld->mVerbosity >= 0){
+		scprintf("<-SC_CoreAudioDriver::DriverStart\n");
+	}
+	return true;
+}
+
+bool SC_AndroidJNIAudioDriver::DriverStop()
+{
+	if(mWorld->mVerbosity >= 0){
+		scprintf("->SC_CoreAudioDriver::DriverStop\n");
+	}
+
+	if(mWorld->mVerbosity >= 0){
+		scprintf("<-SC_CoreAudioDriver::DriverStop\n");
+	}
+	return true;
+}
+
+
 int64 gOSCoffset = 0;
 
 static inline int64 GetCurrentOSCTime()
