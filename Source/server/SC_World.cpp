@@ -57,6 +57,8 @@
 # include <sys/mman.h>
 #endif
 
+#include <android/log.h>
+
 InterfaceTable gInterfaceTable;
 PrintFunc gPrint = 0;
 
@@ -1293,3 +1295,19 @@ int scprintf(const char *fmt, ...)
 	if (gPrint) return (*gPrint)(fmt, vargs);
 	else return vprintf(fmt, vargs);
 }
+
+const char * sc_logtag = "libscsynth";
+void scvprintf_android(const char *fmt, va_list ap);
+void scvprintf_android(const char *fmt, va_list ap){
+  // note, currently no way to choose log level of scsynth messages so all set as 'debug'
+  //  #ifndef NDEBUG
+  __android_log_vprint(ANDROID_LOG_DEBUG, sc_logtag, fmt, ap);
+  //  #endif
+}
+
+extern "C" void scsynth_android_initlogging();
+void scsynth_android_initlogging() {
+  SetPrintFunc((PrintFunc) *scvprintf_android);
+  scprintf("SCSYNTH->ANDROID logging active\n");
+}
+
