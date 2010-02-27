@@ -46,11 +46,14 @@ void* scThreadFunc(void* arg)
 }
 void null_reply_func(struct ReplyAddress* /*addr*/, char* /*msg*/, int /*size*/);
 
-
 static World * world;
+static float * audioData;
 
-extern "C" int scsynth_android_start(){
+extern "C" int scsynth_android_start(int srate, int blockSize){
 	WorldOptions options = kDefaultWorldOptions;
+	options.mPreferredSampleRate = srate;
+	options.mBufLength = blockSize;
+	
 	// Reduce things down a bit for lower-spec - these are all open for review
 	options.mNumBuffers  = 512;
 	options.mMaxGraphDefs = 512;
@@ -59,15 +62,16 @@ extern "C" int scsynth_android_start(){
 	options.mNumInputBusChannels  = 2;
 	options.mNumOutputBusChannels = 2;
 	options.mRealTimeMemorySize = 512;
-	options.mPreferredSampleRate = 22050;
 	options.mNumRGens = 16;
 	options.mLoadGraphDefs = 1; // TODO: decide whether to load from folders or directly
 	options.mVerbosity = 2; // TODO: reduce this back to zero for non-debug builds once dev't is stable
 	
+	audioData = (float*) malloc(options.mBufLength * sizeof(float)); // TODO: where do we get to free this???
+	
 	// Similar to SCProcess:startup :
 	pthread_t scThread;
 	OSCMessages messages;
-
+	
     world = World_New(&options);
     //world->mDumpOSC=2;
     if (world) {
@@ -82,20 +86,120 @@ extern "C" int scsynth_android_start(){
     }
 }
 
-/* the callback that java uses to ask scsynth for some sound */
+/**
+* The callback that java uses to ask scsynth for some sound.
+* The length of the array is not necessarily the same as sc's block size -
+* it should be an exact multiple of it though.
+*/
 JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyteArray arr )
 {
 	jbyte *carr;
-	jint i, len;
+	jint i, posi, posf, len;
 	carr = (env)->GetByteArrayElements(arr, NULL);
-	len = (env)->GetArrayLength(arr);
 	if(carr == NULL){
-		return 1; /* exception */
+		return 1;
 	}
+	len = (env)->GetArrayLength(arr);
+	
+	// android audio buffers are fixed as 16-bit, so we shrink by factor of 2:
+	jint numSamples = len / 2;
+	int* arri = (int*) carr;
+	
+	int bufFrames = world->mBufLength;
+	// TODO: efficiency
+	jint numBufs = numSamples / bufFrames;
+	// TODO: assert(numBufs * bufFrames == leni); // exact divisor
+	posi = 0;
+
+	float *inBuses = world->mAudioBus + world->mNumOutputs * bufFrames;
+	float *outBuses = world->mAudioBus;
+	int32 *inTouched = world->mAudioBusTouched + world->mNumOutputs;
+	int32 *outTouched = world->mAudioBusTouched;
+
+	int minInputs = world->mNumInputs;
+	int minOutputs = world->mNumOutputs;
+
+	int bufFramePos = 0;
+
+	int64 oscTime = mOSCbuftime;
+	int64 oscInc = mOSCincrement;
+	double oscToSamples = mOSCtoSamples;
+
+	// main loop copied from the PortAudio driver
+	for (int i = 0; i < numBufs; ++i, world->mBufCounter++, bufFramePos += bufFrames)
+	{
+		int32 bufCounter = world->mBufCounter;
+		int32 *tch;
+
+		// copy+touch inputs
+		tch = inTouched;
+		for (int k = 0; k < minInputs; ++k)
+		{
+			const float *src = inBuffers[k] + bufFramePos;
+			float *dst = inBuses + k * bufFrames;
+			for (int n = 0; n < bufFrames; ++n) *dst++ = *src++;
+			*tch++ = bufCounter;
+		}
+
+		// run engine
+		int64 schedTime;
+		int64 nextTime = oscTime + oscInc;
+		while ((schedTime = mScheduler.NextTime()) <= nextTime) {
+			float diffTime = (float)(schedTime - oscTime) * oscToSamples + 0.5;
+			float diffTimeFloor = floor(diffTime);
+			world->mSampleOffset = (int)diffTimeFloor;
+			world->mSubsampleOffset = diffTime - diffTimeFloor;
+
+			if (world->mSampleOffset < 0) world->mSampleOffset = 0;
+			else if (world->mSampleOffset >= world->mBufLength) world->mSampleOffset = world->mBufLength-1;
+
+			SC_ScheduledEvent event = mScheduler.Remove();
+			event.Perform();
+		}
+		world->mSampleOffset = 0;
+		world->mSubsampleOffset = 0.f;
+
+		World_Run(world);
+
+		// copy touched outputs
+		tch = outTouched;
+		for (int k = 0; k < minOutputs; ++k) {
+			float *dst = outBuffers[k] + bufFramePos;
+			if (*tch++ == bufCounter) {
+				float *src = outBuses + k * bufFrames;
+				for (int n = 0; n < bufFrames; ++n) *dst++ = *src++;
+			} else {
+				for (int n = 0; n < bufFrames; ++n) *dst++ = 0.0f;
+			}
+		}
+
+		// update buffer time
+		oscTime = mOSCbuftime = nextTime;
+	}
+
+
+
+
+
+	for(i=0; i<numBufs; ++i){
+		// fill audioData[]
+		
+//NOT DONE
+//NOT DONE
+//NOT DONE
+		
+		// drop sound into carr[numBlocks * i]
+		posf=0;
+		arri[posi++] = (int)(audioData[posf++]);
+	}
+	
+	/*
 	for(i=0; i<len; ++i){
 		// TODO some decent audio...
 		carr[i] = (i * 3) % 256;
 	}
+	*/
+	
 	(env)->ReleaseByteArrayElements(arr, carr, 0);
 	return 0;
 }
@@ -137,7 +241,7 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 	static JNINativeMethod methods[] = {
 		// name, signature, function pointer
 		{ "scsynth_android_initlogging", "()V",   (void *) &scsynth_android_initlogging },
-		{ "scsynth_android_start"      , "()I",   (void *) &scsynth_android_start       },
+		{ "scsynth_android_start"      , "(II)I",   (void *) &scsynth_android_start       },
 		{ "scsynth_android_genaudio"   , "([B)I", (void *) &scsynth_android_genaudio    },
 		{ "scsynth_android_makeSynth"  , "()V",   (void *) &scsynth_android_makeSynth   },
 		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },
