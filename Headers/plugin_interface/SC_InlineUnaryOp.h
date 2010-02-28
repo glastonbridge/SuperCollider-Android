@@ -207,7 +207,8 @@ inline float32 sc_trunc(float32 x)
 
 inline float32 sc_frac(float32 x)
 {
-	float32 intpart;
+	// why is this not working?    float32 intpart;
+	double intpart;
 	return std::modf(x, &intpart);
 }
 

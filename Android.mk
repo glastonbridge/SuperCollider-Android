@@ -63,3 +63,36 @@ LOCAL_SRC_FILES := \
     Source/server/SC_Android.cpp 
 
 include $(BUILD_SHARED_LIBRARY)
+
+######################################################
+# plugins:
+
+include $(CLEAR_VARS)
+LOCAL_MODULE   := IOUGens
+LOCAL_SRC_FILES := \
+    Source/plugins/IOUGens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -D__GCC__
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := NoiseUGens
+LOCAL_SRC_FILES := \
+    Source/plugins/NoiseUGens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -D__GCC__
+include $(BUILD_SHARED_LIBRARY)
+
+
+
+
