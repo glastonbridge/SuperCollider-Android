@@ -51,10 +51,20 @@ void null_reply_func(struct ReplyAddress* /*addr*/, char* /*msg*/, int /*size*/)
 static World * world;
 
 extern "C" int scsynth_android_start(JNIEnv* env, jobject obj, 
-						jint srate, jint hwBufSize, jint numOutChans){
+						jint srate, jint hwBufSize, jint numOutChans,
+						jstring pluginsPath, jstring synthDefsPath){
 
-	__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "scsynth_android_start(%i, %i, %i)",
-		(int)srate, (int)hwBufSize, (int)numOutChans);
+	jboolean isCopy;
+	const char* pluginsPath_c   = env->GetStringUTFChars(pluginsPath,   &isCopy);
+	const char* synthDefsPath_c = env->GetStringUTFChars(synthDefsPath, &isCopy);
+	__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "scsynth_android_start(%i, %i, %i, %s, %s)",
+		(int)srate, (int)hwBufSize, (int)numOutChans, pluginsPath_c, synthDefsPath_c);
+    setenv("SC_PLUGIN_PATH",   pluginsPath_c,   1);
+    setenv("SC_SYNTHDEF_PATH", synthDefsPath_c, 1);
+	env->ReleaseStringUTFChars(pluginsPath,   pluginsPath_c);
+	env->ReleaseStringUTFChars(synthDefsPath, synthDefsPath_c);
+
+
 
 	WorldOptions options = kDefaultWorldOptions;
 	options.mPreferredSampleRate = srate;
@@ -162,7 +172,7 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 	static JNINativeMethod methods[] = {
 		// name, signature, function pointer
 		{ "scsynth_android_initlogging", "()V",   (void *) &scsynth_android_initlogging },
-		{ "scsynth_android_start"      , "(III)I",   (void *) &scsynth_android_start       },
+		{ "scsynth_android_start"      , "(IIILjava/lang/String;Ljava/lang/String;)I",   (void *) &scsynth_android_start       },
 		{ "scsynth_android_genaudio"   , "([B)I", (void *) &scsynth_android_genaudio    },
 		{ "scsynth_android_makeSynth"  , "(Ljava/lang/String;)V",   (void *) &scsynth_android_makeSynth   },
 		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },

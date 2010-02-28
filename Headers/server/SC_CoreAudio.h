@@ -346,7 +346,7 @@ class SC_AndroidJNIAudioDriver : public SC_AudioDriver
 {
 
 protected:
-        float * audioData;
+        //NOT NEEDED? float * audioData;
 
     // Driver interface methods
         virtual bool DriverSetup(int* outNumSamplesPerCallback, double* outSampleRate);

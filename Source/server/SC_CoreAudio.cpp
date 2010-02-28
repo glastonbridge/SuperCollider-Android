@@ -2715,12 +2715,12 @@ void initializeScheduler()
 SC_AndroidJNIAudioDriver::SC_AndroidJNIAudioDriver(struct World *inWorld)
 		: SC_AudioDriver(inWorld)
 {
-	audioData = 0;
+	//NOT NEEDED? audioData = 0;
 }
 
 SC_AndroidJNIAudioDriver::~SC_AndroidJNIAudioDriver()
 {
-	if(audioData) free(audioData);
+	//NOT NEEDED? if(audioData) free(audioData);
 }
 
 bool SC_AndroidJNIAudioDriver::DriverSetup(int* outNumSamplesPerCallback, double* outSampleRate)
@@ -2732,7 +2732,7 @@ bool SC_AndroidJNIAudioDriver::DriverSetup(int* outNumSamplesPerCallback, double
 
 	int audioDataSize = mPreferredHardwareBufferFrameSize * mWorld->mNumOutputs * sizeof(float);
 	scprintf("SC_AndroidJNIAudioDriver::DriverSetup: allocating %i bytes for %i frames\n", audioDataSize, mPreferredHardwareBufferFrameSize);
-	audioData = (float*) malloc(audioDataSize);
+	//NOT NEEDED? audioData = (float*) malloc(audioDataSize);
 
 	if(mWorld->mVerbosity >= 0){
 		scprintf("<-SC_AndroidJNIAudioDriver::Setup world %08X, mPreferredHardwareBufferFrameSize %i, mPreferredSampleRate %i, outNumSamplesPerCallback %i, outSampleRate %g\n", 
