@@ -25,6 +25,8 @@
 #include <android/log.h>
 #include <jni.h>
 #include "OSCMessages.h"
+#include "SC_HiddenWorld.h"
+#include "SC_CoreAudio.h"  // for SC_AndroidJNIAudioDriver
 
 void scvprintf_android(const char *fmt, va_list ap){
 	// note, currently no way to choose log level of scsynth messages so all set as 'debug'
@@ -47,31 +49,29 @@ void* scThreadFunc(void* arg)
 void null_reply_func(struct ReplyAddress* /*addr*/, char* /*msg*/, int /*size*/);
 
 static World * world;
-static float * audioData;
 
-extern "C" int scsynth_android_start(JNIEnv* env, jobject obj, jint srate, jint hwBufSize){
+extern "C" int scsynth_android_start(JNIEnv* env, jobject obj, 
+						jint srate, jint hwBufSize, jint numOutChans){
 
-	__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "scsynth_android_start(%i, %i)",
-		(int)srate, (int)hwBufSize);
+	__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "scsynth_android_start(%i, %i, %i)",
+		(int)srate, (int)hwBufSize, (int)numOutChans);
 
 	WorldOptions options = kDefaultWorldOptions;
 	options.mPreferredSampleRate = srate;
 	options.mPreferredHardwareBufferFrameSize = hwBufSize;
-//	options.mBufLength = blockSize;
+	options.mNumOutputBusChannels = numOutChans;
+	options.mNumInputBusChannels  = 0;
 	
 	// Reduce things down a bit for lower-spec - these are all open for review
 	options.mNumBuffers  = 512;
 	options.mMaxGraphDefs = 512;
 	options.mMaxWireBufs = 512;
 	options.mNumAudioBusChannels = 32;
-	options.mNumInputBusChannels  = 2;
-	options.mNumOutputBusChannels = 2;
 	options.mRealTimeMemorySize = 512;
 	options.mNumRGens = 16;
 	options.mLoadGraphDefs = 1; // TODO: decide whether to load from folders or directly
 	options.mVerbosity = 2; // TODO: reduce this back to zero for non-debug builds once dev't is stable
 	
-	audioData = (float*) malloc(options.mBufLength * sizeof(float)); // TODO: where do we get to free this???
 	
 	// Similar to SCProcess:startup :
 	pthread_t scThread;
@@ -109,6 +109,14 @@ JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyt
 	// android audio buffers are fixed as 16-bit, so we shrink by factor of 2:
 	jint numSamples = len / 2;
 	int* arri = (int*) carr;
+	
+	// NB numSamples genuinely is num samples (not num frames as sometimes in sc code)
+	
+	((SC_AndroidJNIAudioDriver*)AudioDriver(world))->genaudio(arri, numSamples);
+	
+	
+	
+	
 /*	
 	int bufFrames = world->mBufLength;
 	// TODO: efficiency
@@ -205,7 +213,7 @@ JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyt
 	}
 	*/
 	
-	(env)->ReleaseByteArrayElements(arr, carr, 0);
+	env->ReleaseByteArrayElements(arr, carr, 0);
 	return 0;
 }
 
@@ -249,7 +257,7 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 	static JNINativeMethod methods[] = {
 		// name, signature, function pointer
 		{ "scsynth_android_initlogging", "()V",   (void *) &scsynth_android_initlogging },
-		{ "scsynth_android_start"      , "(II)I",   (void *) &scsynth_android_start       },
+		{ "scsynth_android_start"      , "(III)I",   (void *) &scsynth_android_start       },
 		{ "scsynth_android_genaudio"   , "([B)I", (void *) &scsynth_android_genaudio    },
 		{ "scsynth_android_makeSynth"  , "(Ljava/lang/String;)V",   (void *) &scsynth_android_makeSynth   },
 		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },

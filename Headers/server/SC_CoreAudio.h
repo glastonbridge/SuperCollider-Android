@@ -346,16 +346,18 @@ class SC_AndroidJNIAudioDriver : public SC_AudioDriver
 {
 
 protected:
+        float * audioData;
+
     // Driver interface methods
         virtual bool DriverSetup(int* outNumSamplesPerCallback, double* outSampleRate);
         virtual bool DriverStart();
         virtual bool DriverStop();
-        void genaudio();
-
+        
 public:
     SC_AndroidJNIAudioDriver(struct World *inWorld);
         virtual ~SC_AndroidJNIAudioDriver();
 
+        void genaudio(int* arri, int numSamples);
     //void Run(const AudioBufferList* inInputData, AudioBufferList* outOutputData, int64 oscTime);
 
 
