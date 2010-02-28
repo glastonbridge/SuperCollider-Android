@@ -350,6 +350,7 @@ protected:
         virtual bool DriverSetup(int* outNumSamplesPerCallback, double* outSampleRate);
         virtual bool DriverStart();
         virtual bool DriverStop();
+        void genaudio();
 
 public:
     SC_AndroidJNIAudioDriver(struct World *inWorld);

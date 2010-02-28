@@ -49,10 +49,15 @@ void null_reply_func(struct ReplyAddress* /*addr*/, char* /*msg*/, int /*size*/)
 static World * world;
 static float * audioData;
 
-extern "C" int scsynth_android_start(int srate, int blockSize){
+extern "C" int scsynth_android_start(JNIEnv* env, jobject obj, jint srate, jint hwBufSize){
+
+	__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "scsynth_android_start(%i, %i)",
+		(int)srate, (int)hwBufSize);
+
 	WorldOptions options = kDefaultWorldOptions;
 	options.mPreferredSampleRate = srate;
-	options.mBufLength = blockSize;
+	options.mPreferredHardwareBufferFrameSize = hwBufSize;
+//	options.mBufLength = blockSize;
 	
 	// Reduce things down a bit for lower-spec - these are all open for review
 	options.mNumBuffers  = 512;
@@ -104,7 +109,7 @@ JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyt
 	// android audio buffers are fixed as 16-bit, so we shrink by factor of 2:
 	jint numSamples = len / 2;
 	int* arri = (int*) carr;
-	
+/*	
 	int bufFrames = world->mBufLength;
 	// TODO: efficiency
 	jint numBufs = numSamples / bufFrames;
@@ -180,7 +185,6 @@ JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyt
 
 
 
-
 	for(i=0; i<numBufs; ++i){
 		// fill audioData[]
 		
@@ -192,6 +196,7 @@ JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyt
 		posf=0;
 		arri[posi++] = (int)(audioData[posf++]);
 	}
+*/
 	
 	/*
 	for(i=0; i<len; ++i){
@@ -205,16 +210,19 @@ JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyt
 }
 
 
-extern "C" void scsynth_android_makeSynth(const char* synthName){
+extern "C" void scsynth_android_makeSynth(JNIEnv* env, jobject obj, jstring theName){
     if (world->mRunning){
+    	jboolean isCopy;
+    	const char* synthName = env->GetStringUTFChars(theName, &isCopy);
         OSCMessages messages;
         small_scpacket packet;
         size_t messageSize =  messages.createSynthMessage(&packet, synthName);
         World_SendPacket(world,messageSize,  (char*)packet.buf, null_reply_func);
+        env->ReleaseStringUTFChars(theName, synthName);
     }
 }
 
-extern "C" void scsynth_android_quit(){
+extern "C" void scsynth_android_quit(JNIEnv* env, jobject obj){
     OSCMessages messages;
     if (world && world->mRunning){
          small_scpacket packet = messages.quitMessage();
@@ -243,7 +251,7 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 		{ "scsynth_android_initlogging", "()V",   (void *) &scsynth_android_initlogging },
 		{ "scsynth_android_start"      , "(II)I",   (void *) &scsynth_android_start       },
 		{ "scsynth_android_genaudio"   , "([B)I", (void *) &scsynth_android_genaudio    },
-		{ "scsynth_android_makeSynth"  , "()V",   (void *) &scsynth_android_makeSynth   },
+		{ "scsynth_android_makeSynth"  , "(Ljava/lang/String;)V",   (void *) &scsynth_android_makeSynth   },
 		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },
 	};
 	env->RegisterNatives(cls, methods, sizeof(methods)/sizeof(methods[0]) );

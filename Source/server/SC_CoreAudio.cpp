@@ -2723,8 +2723,14 @@ SC_AndroidJNIAudioDriver::~SC_AndroidJNIAudioDriver()
 
 bool SC_AndroidJNIAudioDriver::DriverSetup(int* outNumSamplesPerCallback, double* outSampleRate)
 {
+	// Here we are setting these to the values that were originally passed in as options.
+	// In current android impl, these values came directly from java as args to scsynth_android_start().
+	*outNumSamplesPerCallback = mPreferredHardwareBufferFrameSize;
+	*outSampleRate = mPreferredSampleRate;
+	
 	if(mWorld->mVerbosity >= 0){
-		scprintf("<-SC_CoreAudioDriver::Setup world %08X\n", mWorld);
+		scprintf("<-SC_AndroidJNIAudioDriver::Setup world %08X, mPreferredHardwareBufferFrameSize %i, mPreferredSampleRate %i, outNumSamplesPerCallback %i, outSampleRate %g\n", 
+				mWorld, mPreferredHardwareBufferFrameSize, mPreferredSampleRate, *outNumSamplesPerCallback, *outSampleRate);
 	}
 	return true;
 }
@@ -2732,13 +2738,13 @@ bool SC_AndroidJNIAudioDriver::DriverSetup(int* outNumSamplesPerCallback, double
 bool SC_AndroidJNIAudioDriver::DriverStart()
 {
 	if(mWorld->mVerbosity >= 0){
-		scprintf("->SC_CoreAudioDriver::DriverStart\n");
+		scprintf("->SC_AndroidJNIAudioDriver::DriverStart\n");
 	}
 	
 	// TODO: should this exert control over the java audio code starting?
 	
 	if(mWorld->mVerbosity >= 0){
-		scprintf("<-SC_CoreAudioDriver::DriverStart\n");
+		scprintf("<-SC_AndroidJNIAudioDriver::DriverStart\n");
 	}
 	return true;
 }
@@ -2746,7 +2752,7 @@ bool SC_AndroidJNIAudioDriver::DriverStart()
 bool SC_AndroidJNIAudioDriver::DriverStop()
 {
 	if(mWorld->mVerbosity >= 0){
-		scprintf("->SC_CoreAudioDriver::DriverStop\n");
+		scprintf("->SC_AndroidJNIAudioDriver::DriverStop\n");
 	}
 	
 	
@@ -2754,11 +2760,14 @@ bool SC_AndroidJNIAudioDriver::DriverStop()
 	
 	
 	if(mWorld->mVerbosity >= 0){
-		scprintf("<-SC_CoreAudioDriver::DriverStop\n");
+		scprintf("<-SC_AndroidJNIAudioDriver::DriverStop\n");
 	}
 	return true;
 }
 
+void SC_AndroidJNIAudioDriver::genaudio()
+{
+}
 
 int64 gOSCoffset = 0;
 
