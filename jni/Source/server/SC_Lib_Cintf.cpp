@@ -250,6 +250,9 @@ void initialize_library(const char *uGensPluginPath)
 bool PlugIn_Load(const char *filename);
 bool PlugIn_Load(const char *filename)
 {
+#ifndef NDEBUG
+	scprintf("PlugIn_Load(%s)\n", filename);
+#endif
 #ifdef SC_WIN32
 
     HINSTANCE hinstance = LoadLibrary( filename );
@@ -311,6 +314,9 @@ bool PlugIn_Load(const char *filename)
 
 bool PlugIn_LoadDir(const char *dirname, bool reportError)
 {
+#ifndef NDEBUG
+	scprintf("PlugIn_LoadDir(%s)\n", dirname);
+#endif
 	bool success = true;
 
 	SC_DirHandle *dir = sc_OpenDir(dirname);

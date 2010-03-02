@@ -28,6 +28,9 @@
 #include "SC_HiddenWorld.h"
 #include "SC_CoreAudio.h"  // for SC_AndroidJNIAudioDriver
 
+#include <dirent.h>  // ONLY for the debug folder scanning
+
+
 void scvprintf_android(const char *fmt, va_list ap){
 	// note, currently no way to choose log level of scsynth messages so all set as 'debug'
 	//  #ifndef NDEBUG
@@ -61,6 +64,21 @@ extern "C" int scsynth_android_start(JNIEnv* env, jobject obj,
 		(int)srate, (int)hwBufSize, (int)numOutChans, pluginsPath_c, synthDefsPath_c);
     setenv("SC_PLUGIN_PATH",   pluginsPath_c,   1);
     setenv("SC_SYNTHDEF_PATH", synthDefsPath_c, 1);
+    
+    // DEBUG: Check that we can read the path
+	DIR *dip;
+	struct dirent *dit;
+	if ((dip = opendir(pluginsPath_c)) == NULL){
+		__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "Could not opendir(%s)\n", pluginsPath_c);
+	}else{
+		__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "OK, listing opendir(%s)\n", pluginsPath_c);
+		while ((dit = readdir(dip)) != NULL){
+			__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "Entry: %s\n", dit->d_name);
+		}
+		if (closedir(dip) == -1)
+			__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "Could not closedir(%s)\n", pluginsPath_c);
+	}
+
 	env->ReleaseStringUTFChars(pluginsPath,   pluginsPath_c);
 	env->ReleaseStringUTFChars(synthDefsPath, synthDefsPath_c);
 

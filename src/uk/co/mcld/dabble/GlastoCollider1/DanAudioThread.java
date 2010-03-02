@@ -38,12 +38,26 @@ class DanAudioThread extends Thread {
 		Log.i("GlastoCollider1", "DanAudioThread - about to invoke native scsynth_android_initlogging()");
 		scsynth_android_initlogging();
 		
-		// tell scsynth where we're expecting synthdefs
-		File dataDir = Environment.getDataDirectory();
-		String dataDirStr = dataDir.toString();
+		// tell scsynth where we're expecting synthdefs (and plugins? not yet settled on the best way to handle plugins)
+		//File dataDir = Environment.getDataDirectory();
+		//String dataDirStr = dataDir.toString();
+		String dataDirStr = "/sdcard/supercollider";
+		String dataDirStrPlgs = dataDirStr + "/plugins";
+		String dataDirStrDefs = dataDirStr + "/synthdefs";
 		Log.i("GlastoCollider1", "DanAudioThread - data dir is " + dataDirStr);
 		
-		int result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numOutChans, dataDirStr, dataDirStr);
+		// for debug purposes only, looking in the folder to see what's there:
+		File dirf = new File(dataDirStr);
+		if(dirf.exists()){
+			File[] lsf = dirf.listFiles();
+			for(File afile : lsf){
+				Log.i("GlastoCollider1", "DanAudioThread: found file " + afile.getName());
+			}
+		}else{
+			Log.w("GlastoCollider1", "Data folder not found (will be unable to load synthdefs): " + dataDirStr);
+		}
+		
+		int result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numOutChans, dataDirStrPlgs, dataDirStrDefs);
 		Log.i("GlastoCollider1", "DanAudioThread - result of scsynth_android_start() is " + result);
 	}
 
