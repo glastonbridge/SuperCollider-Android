@@ -30,6 +30,7 @@
 
 #include <dirent.h>  // ONLY for the debug folder scanning
 
+static const char * MY_JAVA_CLASS = "uk/co/mcld/dabble/GlastoCollider1/SCAudio"; //TODO sth more generic
 
 void scvprintf_android(const char *fmt, va_list ap){
 	// note, currently no way to choose log level of scsynth messages so all set as 'debug'
@@ -182,7 +183,7 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 		return -1;
 
 	jclass  cls;
-	cls = env->FindClass("uk/co/mcld/dabble/GlastoCollider1/DanAudioThread"); //TODO sth more generic
+	cls = env->FindClass(MY_JAVA_CLASS); 
 	if (cls == NULL) {
 		__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "JNI_Onload FindClass failed");
 		return JNI_ERR;

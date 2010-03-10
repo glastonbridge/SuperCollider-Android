@@ -5,11 +5,17 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.util.Log;
 import java.io.File;
-import android.os.Environment;
 
-class DanAudioThread extends Thread {
-
-	GlastoCollider1 theApp;
+/**
+ * Responsible for the event loop which drives SuperCollider
+ * under the hood of the NDK.
+ * 
+ * @author Dan Stowell
+ *
+ */
+class SCAudio extends Thread {
+	private static final String TAG="GlastoCollider1";
+	SuperColliderActivity theApp;
 	
 	final int numOutChans = 2; // note, don't change this without changing the AudioTrack's mono-or-stereo config
 	final int bytesPerSample = 2; // note, don't change this without changing the AudioTrack's 16bit config, OH and all the NDK stuff
@@ -33,32 +39,28 @@ class DanAudioThread extends Thread {
 	public native void scsynth_android_makeSynth(String synthName);
 	public native void scsynth_android_quit();
     
-	public DanAudioThread(GlastoCollider1 theApp){
+	public SCAudio(SuperColliderActivity theApp){
 		this.theApp = theApp;
-		Log.i("GlastoCollider1", "DanAudioThread - about to invoke native scsynth_android_initlogging()");
+		Log.i(TAG, "DanAudioThread - about to invoke native scsynth_android_initlogging()");
 		scsynth_android_initlogging();
-		
-		// tell scsynth where we're expecting synthdefs (and plugins? not yet settled on the best way to handle plugins)
-		//File dataDir = Environment.getDataDirectory();
-		//String dataDirStr = dataDir.toString();
-		String dataDirStr = "/sdcard/supercollider";
-		String dataDirStrPlgs = dataDirStr + "/plugins";
-		String dataDirStrDefs = dataDirStr + "/synthdefs";
-		Log.i("GlastoCollider1", "DanAudioThread - data dir is " + dataDirStr);
-		
-		// for debug purposes only, looking in the folder to see what's there:
-		File dirf = new File(dataDirStr);
-		if(dirf.exists()){
-			File[] lsf = dirf.listFiles();
-			for(File afile : lsf){
-				Log.i("GlastoCollider1", "DanAudioThread: found file " + afile.getName());
-			}
-		}else{
-			Log.w("GlastoCollider1", "Data folder not found (will be unable to load synthdefs): " + dataDirStr);
+		String scDirStr = "/sdcard/supercollider";
+		String dataDirStr = scDirStr+"/synthdefs";;
+		File dataDir = new File(dataDirStr);
+		if(dataDir.mkdirs()) {  
+		} else if (!dataDir.isDirectory()) {
+			Log.e(TAG,"Could not create directory "+dataDirStr);
 		}
-		
-		int result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numOutChans, dataDirStrPlgs, dataDirStrDefs);
-		Log.i("GlastoCollider1", "DanAudioThread - result of scsynth_android_start() is " + result);
+		String dllDirStr = "/data/data/uk.co.mcld.dabble.GlastoCollider1/lib"; // TODO: not very extensible, hard coded, generally sucks
+
+		Log.i(TAG, "DanAudioThread - data dir is " + dataDirStr);
+		int result = 0xdead;
+		try {
+			result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numOutChans, dllDirStr, dataDirStr);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+				
+		Log.i(TAG, "DanAudioThread - result of scsynth_android_start() is " + result);
 	}
 
 	public void setRunning(boolean val){
@@ -91,7 +93,7 @@ class DanAudioThread extends Thread {
 
 		// hackily set up some dummy audio in the buffer
 		for(int i=0; i<audioBuf.length; i++){
-			audioBuf[i] = (byte)((i * 5) % 256);
+			audioBuf[i] = (byte)((i * 3) % 256);
 		}
 
 		audioTrack.play(); // this must be done BEFORE we write data to it
@@ -103,6 +105,10 @@ class DanAudioThread extends Thread {
 		while(running){
 			// let the NDK make the sound!
 			ndkReturnVal = scsynth_android_genaudio(audioBuf);
+			if(ndkReturnVal!=0) {
+				Log.e(TAG,"SCSynth returned non-zero value "+ndkReturnVal);
+				running=false;
+			}
 			audioTrack.write(audioBuf, 0, audioBuf.length);
 			Thread.yield();
 		}

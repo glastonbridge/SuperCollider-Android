@@ -39,6 +39,7 @@
 #include "SC_Prototypes.h"
 #include "SC_Samp.h"
 #include "SC_DirUtils.h"
+#include <stdexcept>
 #ifdef SC_WIN32
 # include "../../headers/server/SC_ComPort.h"
 # include "SC_Win32Utils.h"
@@ -292,7 +293,7 @@ World* World_New(WorldOptions *inOptions)
 
 	World *world = 0;
 
- /* try */ {
+	try {
 		static bool gLibInitted = false;
 		if (!gLibInitted) {
 			InterfaceTable_Init();
@@ -356,7 +357,7 @@ World* World_New(WorldOptions *inOptions)
 		GroupNodeDef_Init();
 
 		int err = Group_New(world, 0, &world->mTopGroup);
-/* throw err; */
+		if (err) throw err;
 
 		world->mRealTime = inOptions->mRealTime;
 
@@ -420,6 +421,11 @@ World* World_New(WorldOptions *inOptions)
 		} else {
 			hw->mAudioDriver = 0;
 		}
+	} catch (std::exception& exc) {
+		scprintf("Exception in World_New: %s\n", exc.what());
+		World_Cleanup(world);
+		return 0;
+	} catch (...) {
 	}
 	return world;
 }
@@ -483,11 +489,11 @@ bool nextOSCPacket(FILE *file, OSC_Packet *packet, int64& outTime)
 	// msglen is in network byte order
 	msglen = OSCint((char*)&msglen);
 	if (msglen > 8192)
-/* throw std::runtime_error("OSC packet too long. > 8192 bytes\n"); */
+		throw std::runtime_error("OSC packet too long. > 8192 bytes\n");
 
 	fread(packet->mData, 1, msglen, file);
 	if (strcmp(packet->mData, "#bundle")!=0)
-/* throw std::runtime_error("OSC packet not a bundle\n"); */
+			throw std::runtime_error("OSC packet not a bundle\n");
 
 	packet->mSize = msglen;
 
@@ -509,7 +515,7 @@ void World_NonRealTimeSynthesis(struct World *world, WorldOptions *inOptions)
 
 	// batch process non real time audio
 	if (!inOptions->mNonRealTimeOutputFilename)
-/* throw std::runtime_error("Non real time output filename is NULL.\n"); */
+		throw std::runtime_error("Non real time output filename is NULL.\n");
 
 	SF_INFO inputFileInfo, outputFileInfo;
 	float *inputFileBuf = 0;
@@ -524,14 +530,14 @@ void World_NonRealTimeSynthesis(struct World *world, WorldOptions *inOptions)
 
 	world->hw->mNRTOutputFile = sf_open(inOptions->mNonRealTimeOutputFilename, SFM_WRITE, &outputFileInfo);
 	if (!world->hw->mNRTOutputFile)
-/* throw std::runtime_error("Couldn't open non real time output file.\n"); */
+		throw std::runtime_error("Couldn't open non real time output file.\n");
 
 	outputFileBuf = (float*)calloc(1, world->mNumOutputs * fileBufFrames * sizeof(float));
 
 	if (inOptions->mNonRealTimeInputFilename) {
 		world->hw->mNRTInputFile = sf_open(inOptions->mNonRealTimeInputFilename, SFM_READ, &inputFileInfo);
 		if (!world->hw->mNRTInputFile)
-/* throw std::runtime_error("Couldn't open non real time input file.\n"); */
+			throw std::runtime_error("Couldn't open non real time input file.\n");
 
 		inputFileBuf = (float*)calloc(1, inputFileInfo.channels * fileBufFrames * sizeof(float));
 
@@ -556,7 +562,7 @@ void World_NonRealTimeSynthesis(struct World *world, WorldOptions *inOptions)
 #endif
 	} else cmdFile = stdin;
 	if (!cmdFile)
-/* throw std::runtime_error("Couldn't open non real time command file.\n"); */
+		throw std::runtime_error("Couldn't open non real time command file.\n");
 
 	char msgbuf[8192];
 	OSC_Packet packet;
@@ -567,7 +573,7 @@ void World_NonRealTimeSynthesis(struct World *world, WorldOptions *inOptions)
 
 	int64 schedTime;
 	if (nextOSCPacket(cmdFile, &packet, schedTime))
-/* throw std::runtime_error("command file empty.\n"); */
+		throw std::runtime_error("command file empty.\n");
 	int64 prevTime = schedTime;
 
 	World_SetSampleRate(world, inOptions->mPreferredSampleRate);
@@ -689,38 +695,48 @@ Bail:
 
 int World_OpenUDP(struct World *inWorld, int inPort)
 {
- /* try */ {
+	try {
 		new SC_UdpInPort(inWorld, inPort);
+		return true;
+	} catch (std::exception& exc) {
+		scprintf("Exception in World_OpenUDP: %s\n", exc.what());
+	} catch (...) {
 	}
-	return true;
+	return false;
 }
 
 int World_OpenTCP(struct World *inWorld, int inPort, int inMaxConnections, int inBacklog)
 {
- /* try */ {
+	try {
 		new SC_TcpInPort(inWorld, inPort, inMaxConnections, inBacklog);
-		
-	/* catch */
+		return true;
+	} catch (std::exception& exc) {
+		scprintf("Exception in World_OpenTCP: %s\n", exc.what());
+	} catch (...) {
 	}
-	return true;
+	return false;
 }
 
 #if defined(SC_DARWIN) || defined(SC_IPHONE)
 void World_OpenMachPorts(struct World *inWorld, CFStringRef localName, CFStringRef remoteName)
 {
- /* try */ {
+	try {
 		new SC_MachMessagePort(inWorld, localName, remoteName);
-	/* catch */
+	} catch (std::exception& exc) {
+		scprintf("Exception in World_OpenMachPorts: %s\n", exc.what());
+	} catch (...) {
 	}
 }
 #endif
 
 void World_WaitForQuit(struct World *inWorld)
 {
- /* try */ {
+	try {
 		inWorld->hw->mQuitProgram->Acquire();
 		World_Cleanup(inWorld);
-	/* catch */
+	} catch (std::exception& exc) {
+		scprintf("Exception in World_WaitForQuit: %s\n", exc.what());
+	} catch (...) {
 	}
 }
 

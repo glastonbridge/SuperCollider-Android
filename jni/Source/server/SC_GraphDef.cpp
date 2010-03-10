@@ -32,7 +32,7 @@
 #ifndef _MSC_VER
 #include <dirent.h>
 #endif //_MSC_VER
-/* stdexcept */
+#include <stdexcept>
 #include "ReadWriteMacros.h"
 #include "SC_Prototypes.h"
 #include "SC_CoreAudio.h"
@@ -60,7 +60,7 @@ void ReadName(char*& buffer, int32* name)
 {
 	uint32 namelen = readInt8(buffer);
 	if (namelen >= kSCNameByteLen) {
-/* throw std::runtime_error("name too long > 31 chars"); */
+		throw std::runtime_error("name too long > 31 chars");
 		namelen = 31;
 	}
 	memset(name, 0, kSCNameByteLen);
@@ -105,7 +105,7 @@ void UnitSpec_Read(UnitSpec* inUnitSpec, char*& buffer)
 	if (!inUnitSpec->mUnitDef) {
 		char str[256];
 		sprintf(str, "UGen '%s' not installed.", (char*)name);
-/* throw std::runtime_error(str); */
+		throw std::runtime_error(str);
 		return;
 	}
 	inUnitSpec->mCalcRate = readInt8(buffer);
@@ -314,9 +314,12 @@ void GraphDef_DeleteMsg(World *inWorld, GraphDef *inDef)
 GraphDef* GraphDef_Recv(World *inWorld, char *buffer, GraphDef *inList)
 {
 
- /* try */ {
+	try {
 		inList = GraphDefLib_Read(inWorld, buffer, inList);
-	/* catch */
+	} catch (std::exception& exc) {
+		scprintf("exception in GraphDef_Recv: %s\n", exc.what());
+	} catch (...) {
+		scprintf("unknown exception in GraphDef_Recv\n");
 	}
 
 	return inList;
@@ -370,9 +373,14 @@ GraphDef* GraphDef_Load(World *inWorld, const char *filename, GraphDef *inList)
 #endif
 	fclose(file);
 
- /* try */ {
+	try {
 		inList = GraphDefLib_Read(inWorld, buffer, inList);
-	/* catch */
+	} catch (std::exception& exc) {
+		scprintf("exception in GrafDef_Load: %s\n", exc.what());
+		scprintf("while reading file '%s'\n", filename);
+	} catch (...) {
+		scprintf("unknown exception in GrafDef_Load\n");
+		scprintf("while reading file '%s'\n", filename);
 	}
 
 	free(buffer);
@@ -574,7 +582,7 @@ void ReleaseInputBuffers(GraphDef *inGraphDef, UnitSpec *unitSpec, BufColorAlloc
 					scprintf("output: %d %s %d\n", inputSpec->mFromUnitIndex,
 								outUnit->mUnitDef->mUnitDefName, inputSpec->mFromOutputIndex);
 					scprintf("input: %s %d\n", unitSpec->mUnitDef->mUnitDefName, i);
-/* throw std::runtime_error("buffer coloring error."); */
+					throw std::runtime_error("buffer coloring error.");
 				}
 			}
 		} else {
@@ -635,7 +643,7 @@ void DoBufferColoring(World *inWorld, GraphDef *inGraphDef)
 		{
 			// cannot reallocate interconnect buffers while running audio.
 			if (inGraphDef->mNumWireBufs > inWorld->hw->mMaxWireBufs) {
-/* throw std::runtime_error("exceeded number of interconnect buffers."); */
+				throw std::runtime_error("exceeded number of interconnect buffers.");
 			}
 		} else {
 			inWorld->hw->mMaxWireBufs = sc_max(inWorld->hw->mMaxWireBufs, inGraphDef->mNumWireBufs);
