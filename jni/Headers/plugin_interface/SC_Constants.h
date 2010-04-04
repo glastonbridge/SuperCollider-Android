@@ -21,10 +21,7 @@
 #ifndef _SC_Constants_
 #define _SC_Constants_
 
-namespace std {
-#include "math.h"
-}
-using namespace std;
+#include <cmath>
 
 #ifndef __FP__
 const double pi     = std::acos(-1.);
@@ -39,6 +36,13 @@ const double log1   = std::log(0.1);
 const double rlog2  = 1./std::log(2.);
 const double sqrt2  = std::sqrt(2.);
 const double rsqrt2 = 1. / sqrt2;
+
+const float pi_f    = std::acos(-1.f);
+const float pi2_f   = pi_f * 0.5f;
+const float pi32_f  = pi_f * 1.5f;
+const float twopi_f = pi_f * 2.f;
+const float sqrt2_f = std::sqrt(2.f);
+const float rsqrt2_f= 1.f/std::sqrt(2.f);
 
 // used to truncate precision
 const float truncFloat = (float)(3. * std::pow(2.0,22));

@@ -93,7 +93,7 @@ class SCAudio extends Thread {
 
 		// hackily set up some dummy audio in the buffer
 		for(int i=0; i<audioBuf.length; i++){
-			audioBuf[i] = (byte)((i * 3) % 256);
+			audioBuf[i] = 0;
 		}
 
 		audioTrack.play(); // this must be done BEFORE we write data to it
@@ -110,11 +110,12 @@ class SCAudio extends Thread {
 				running=false;
 			}
 			audioTrack.write(audioBuf, 0, audioBuf.length);
-			Thread.yield();
+			//Thread.yield();
 		}
 
 		// TODO: tell scsynth to stop, then let *it* call back to stop the audio running
 		audioTrack.stop();
+		audioTrack.release();
 		ended = true;
 	}
 }

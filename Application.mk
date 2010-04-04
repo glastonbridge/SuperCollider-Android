@@ -1,3 +1,3 @@
 APP_PROJECT_PATH := $(call my-dir)
-APP_MODULES      := scsynth IOUGens NoiseUGens
+APP_MODULES      := scsynth PanUGens FilterUGens BinaryOpUGens IOUGens NoiseUGens LFUGens
 

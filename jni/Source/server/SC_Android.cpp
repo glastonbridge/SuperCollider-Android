@@ -127,14 +127,11 @@ extern "C" int scsynth_android_start(JNIEnv* env, jobject obj,
 */
 JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyteArray arr )
 {
-	jbyte *carr;
-	jint i, posi, posf, len;
-	carr = (env)->GetByteArrayElements(arr, NULL);
-	if(carr == NULL){
-		return 1;
-	}
+	jint len;
 	len = (env)->GetArrayLength(arr);
-	
+	jbyte carr[len];
+	int i;
+	for(i=0;i<len;++i) carr[i]=0;
 	// android audio buffers are fixed as 16-bit, so we shrink by factor of 2:
 	jint numSamples = len / 2;
 	int* arri = (int*) carr;
@@ -143,7 +140,7 @@ JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyt
 	
 	((SC_AndroidJNIAudioDriver*)AudioDriver(world))->genaudio(arri, numSamples);
 	
-	env->ReleaseByteArrayElements(arr, carr, 0);
+	env->SetByteArrayRegion(arr, 0,len,carr);
 	return 0;
 }
 

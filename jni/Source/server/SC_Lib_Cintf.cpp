@@ -29,7 +29,7 @@
 #include "SC_StringParser.h"
 #include "SC_InterfaceTable.h"
 #include "SC_DirUtils.h"
-/* stdexcept */
+#include <stdexcept>
 #ifndef _MSC_VER
 #include <dirent.h>
 #endif //_MSC_VER
@@ -59,7 +59,7 @@
 // Symbol of initialization routine when loading plugins
 #ifndef SC_PLUGIN_LOAD_SYM
 
-# if defined(SC_DARWIN) || defined(SC_IPHONE)
+# if defined(SC_DARWIN) || defined(SC_IPHONE) || defined(SC_ANDROID)
 #  define SC_PLUGIN_LOAD_SYM "load"
 # else
 #  define SC_PLUGIN_LOAD_SYM "_load"
