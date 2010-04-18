@@ -41,7 +41,7 @@ class SCAudio extends Thread {
     
 	public SCAudio(SuperColliderActivity theApp){
 		this.theApp = theApp;
-		Log.i(TAG, "DanAudioThread - about to invoke native scsynth_android_initlogging()");
+		Log.i(TAG, "SCAudio - about to invoke native scsynth_android_initlogging()");
 		scsynth_android_initlogging();
 		String scDirStr = "/sdcard/supercollider";
 		String dataDirStr = scDirStr+"/synthdefs";;
@@ -52,7 +52,7 @@ class SCAudio extends Thread {
 		}
 		String dllDirStr = "/data/data/uk.co.mcld.dabble.GlastoCollider1/lib"; // TODO: not very extensible, hard coded, generally sucks
 
-		Log.i(TAG, "DanAudioThread - data dir is " + dataDirStr);
+		Log.i(TAG, "SCAudio - data dir is " + dataDirStr);
 		int result = 0xdead;
 		try {
 			result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numOutChans, dllDirStr, dataDirStr);
@@ -60,7 +60,7 @@ class SCAudio extends Thread {
 			e.printStackTrace();
 		}
 				
-		Log.i(TAG, "DanAudioThread - result of scsynth_android_start() is " + result);
+		Log.i(TAG, "SCAudio - result of scsynth_android_start() is " + result);
 	}
 
 	public void setRunning(boolean val){
