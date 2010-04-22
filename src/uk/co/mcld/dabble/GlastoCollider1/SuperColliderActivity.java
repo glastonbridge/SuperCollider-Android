@@ -1,6 +1,7 @@
 package uk.co.mcld.dabble.GlastoCollider1;
 
 import android.app.Activity;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -37,7 +38,33 @@ public class SuperColliderActivity extends Activity {
 		// Then create the audio thread
 		audioThread = new SCAudio(this); 
 		audioThread.start();
-		tv.setText("ok i created an audio thread...");
+		tv.setTypeface(Typeface.MONOSPACE);
+		tv.setTextSize(10);
+		tv.setText("\n"
+				 + "                  ~+I777?                \n"
+				 + "           :++?I77I====~?I7I             \n"
+				 + "     ~=~+I77I??===+?IIII++~+?7           \n"
+				 + " 77I~?777+===+?????+++?+II??~==7 ,      \n"
+				 + " 7777 I~=II7?++=?+????++=+?IIII~~~+7:   \n"
+				 + " I7=I?777 ~~+?7I?+==++?II?++=~~+I7I+++  \n"
+				 + " ?7~, ~?=+777~~=+7IIII+~~=+??++++++,,+  \n"
+				 + " ?7~      =~+ 77~~~~~=++++++=:,,,,  :+  \n"
+				 + " +7= ??=~=      77++++==~~~:,   ,:, ,=  \n"
+				 + " +7= +?+???+?=,, 7++:     ,:~~~===, ,=  \n"
+				 + " =7= ++=+==???I, I=+   ,,:~=====~=, ,~  \n"
+				 + " ~7+ =+=     +I: ?=+,  ==~~     ~=: ,~  \n"
+				 + " ~7? ~+=  =~ +I: ?~+,  ~~       ~=: ,:  \n"
+				 + " :7? ~++  == =I~ +~+:  ~~   ~::  =~ ,:  \n"
+				 + " :7?  +++++= =I~ +~+:  :~   ~~:  =~ ,:  \n"
+				 + " ,7I=    =~~ ~I= =:+:  :=~~~~~:  =~  ,  \n"
+				 + "  7III~~      I+ ~:+~  :=~~~     ==  ,  \n"
+				 + "    I??7II=+=,I+ ~,+~       :~~====     \n"
+				 + "        ++=7II?I? :,+=  ,:::~=+==+=:     \n"
+				 + "        ,  =~:7I? , +=~=++++=~::,,,      \n"
+				 + "              :,  , ++===~~~,            \n"
+				 + "              ,     +~     ,             \n"
+				 + "                 ,                       \n"
+             );
 
 		//tv.setText("ok i've outputted it");
 
