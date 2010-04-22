@@ -54,11 +54,17 @@ void null_reply_func(struct ReplyAddress* /*addr*/, char* /*msg*/, int /*size*/)
 
 static World * world;
 
+// buffer used for shoogling data up into java
+static short* buff;
+static int bufflen;
+
 extern "C" int scsynth_android_start(JNIEnv* env, jobject obj, 
-						jint srate, jint hwBufSize, jint numOutChans,
+						jint srate, jint hwBufSize, jint numOutChans, jint shortsPerSample,
 						jstring pluginsPath, jstring synthDefsPath){
 
 	jboolean isCopy;
+	bufflen = shortsPerSample*numOutChans*hwBufSize;
+	buff = (short*) calloc(bufflen,sizeof(short));
 	const char* pluginsPath_c   = env->GetStringUTFChars(pluginsPath,   &isCopy);
 	const char* synthDefsPath_c = env->GetStringUTFChars(synthDefsPath, &isCopy);
 	__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "scsynth_android_start(%i, %i, %i, %s, %s)",
@@ -100,6 +106,7 @@ extern "C" int scsynth_android_start(JNIEnv* env, jobject obj,
 	options.mNumRGens = 16;
 	options.mLoadGraphDefs = 1; // TODO: decide whether to load from folders or directly
 	options.mVerbosity = 2; // TODO: reduce this back to zero for non-debug builds once dev't is stable
+	options.mBufLength = hwBufSize / numOutChans;
 	
 	
 	// Similar to SCProcess:startup :
@@ -125,22 +132,11 @@ extern "C" int scsynth_android_start(JNIEnv* env, jobject obj,
 * The length of the array is not necessarily the same as sc's block size -
 * it should be an exact multiple of it though.
 */
-JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jbyteArray arr )
+JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jshortArray arr )
 {
-	jint len;
-	len = (env)->GetArrayLength(arr);
-	jbyte carr[len];
-	int i;
-	for(i=0;i<len;++i) carr[i]=0;
-	// android audio buffers are fixed as 16-bit, so we shrink by factor of 2:
-	jint numSamples = len / 2;
-	int* arri = (int*) carr;
-	
-	// NB numSamples genuinely is num samples (not num frames as sometimes in sc code)
-	
-	((SC_AndroidJNIAudioDriver*)AudioDriver(world))->genaudio(arri, numSamples);
-	
-	env->SetByteArrayRegion(arr, 0,len,carr);
+	((SC_AndroidJNIAudioDriver*)AudioDriver(world))->genaudio(buff, bufflen);
+
+	env->SetShortArrayRegion(arr, 0,bufflen,buff);
 	return 0;
 }
 
@@ -167,6 +163,7 @@ extern "C" void scsynth_android_quit(JNIEnv* env, jobject obj){
     }else{
     	scprintf("scsynth_android_quit: not running!\n");
     }
+    if (buff) free(buff);
 }
 
 /** The main thing JNI_OnLoad does is register the functions so that JNI knows
@@ -188,8 +185,8 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 	static JNINativeMethod methods[] = {
 		// name, signature, function pointer
 		{ "scsynth_android_initlogging", "()V",   (void *) &scsynth_android_initlogging },
-		{ "scsynth_android_start"      , "(IIILjava/lang/String;Ljava/lang/String;)I",   (void *) &scsynth_android_start       },
-		{ "scsynth_android_genaudio"   , "([B)I", (void *) &scsynth_android_genaudio    },
+		{ "scsynth_android_start"      , "(IIIILjava/lang/String;Ljava/lang/String;)I",   (void *) &scsynth_android_start       },
+		{ "scsynth_android_genaudio"   , "([S)I", (void *) &scsynth_android_genaudio    },
 		{ "scsynth_android_makeSynth"  , "(Ljava/lang/String;)V",   (void *) &scsynth_android_makeSynth   },
 		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },
 	};
