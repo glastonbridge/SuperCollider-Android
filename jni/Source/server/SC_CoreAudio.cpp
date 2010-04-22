@@ -2283,98 +2283,104 @@ int SC_PortAudioDriver::PortAudioCallback( const void *input, void *output,
     World *world = mWorld;
     (void) frameCount, timeInfo, statusFlags; // suppress unused parameter warnings
 
-    // synchronise against the output buffer - timeInfo->currentTime is 0.0 bug in PA?
-    if (mPaStreamStartupTime==0 && mPaStreamStartupTimeOSC==0) {
-        mPaStreamStartupTimeOSC = GetCurrentOSCTime();
-        mPaStreamStartupTime = timeInfo->outputBufferDacTime;
-    }
-    mOSCbuftime = PaStreamTimeToOSC(timeInfo->outputBufferDacTime - mPaStreamStartupTime) + mPaStreamStartupTimeOSC;
+	try {
+		// synchronise against the output buffer - timeInfo->currentTime is 0.0 bug in PA?
+		if (mPaStreamStartupTime==0 && mPaStreamStartupTimeOSC==0) {
+			mPaStreamStartupTimeOSC = GetCurrentOSCTime();
+			mPaStreamStartupTime = timeInfo->outputBufferDacTime;
+		}
+		mOSCbuftime = PaStreamTimeToOSC(timeInfo->outputBufferDacTime - mPaStreamStartupTime) + mPaStreamStartupTimeOSC;
 
-    mFromEngine.Free();
-    mToEngine.Perform();
-    mOscPacketsToEngine.Perform();
+		mFromEngine.Free();
+		mToEngine.Perform();
+		mOscPacketsToEngine.Perform();
 
-    int numInputs = mInputChannelCount;
-    int numOutputs = mOutputChannelCount;
-    const float **inBuffers = (const float**)input;
-    float **outBuffers = (float**)output;
+		int numInputs = mInputChannelCount;
+		int numOutputs = mOutputChannelCount;
+		const float **inBuffers = (const float**)input;
+		float **outBuffers = (float**)output;
 
-    int numSamples = NumSamplesPerCallback();
-    int bufFrames = mWorld->mBufLength;
-    int numBufs = numSamples / bufFrames;
+		int numSamples = NumSamplesPerCallback();
+		int bufFrames = mWorld->mBufLength;
+		int numBufs = numSamples / bufFrames;
 
-    float *inBuses = mWorld->mAudioBus + mWorld->mNumOutputs * bufFrames;
-    float *outBuses = mWorld->mAudioBus;
-    int32 *inTouched = mWorld->mAudioBusTouched + mWorld->mNumOutputs;
-    int32 *outTouched = mWorld->mAudioBusTouched;
+		float *inBuses = mWorld->mAudioBus + mWorld->mNumOutputs * bufFrames;
+		float *outBuses = mWorld->mAudioBus;
+		int32 *inTouched = mWorld->mAudioBusTouched + mWorld->mNumOutputs;
+		int32 *outTouched = mWorld->mAudioBusTouched;
 
-    int minInputs = std::min<size_t>(numInputs, mWorld->mNumInputs);
-    int minOutputs = std::min<size_t>(numOutputs, mWorld->mNumOutputs);
+		int minInputs = std::min<size_t>(numInputs, mWorld->mNumInputs);
+		int minOutputs = std::min<size_t>(numOutputs, mWorld->mNumOutputs);
 
-    int bufFramePos = 0;
+		int bufFramePos = 0;
 
-    int64 oscTime = mOSCbuftime;
-    int64 oscInc = mOSCincrement;
-    double oscToSamples = mOSCtoSamples;
+		int64 oscTime = mOSCbuftime;
+		int64 oscInc = mOSCincrement;
+		double oscToSamples = mOSCtoSamples;
 
-    // main loop
-    for (int i = 0; i < numBufs; ++i, mWorld->mBufCounter++, bufFramePos += bufFrames)
-    {
-        int32 bufCounter = mWorld->mBufCounter;
-        int32 *tch;
+		// main loop
+		for (int i = 0; i < numBufs; ++i, mWorld->mBufCounter++, bufFramePos += bufFrames)
+		{
+			int32 bufCounter = mWorld->mBufCounter;
+			int32 *tch;
 
-        // copy+touch inputs
-        tch = inTouched;
-        for (int k = 0; k < minInputs; ++k)
-        {
-            const float *src = inBuffers[k] + bufFramePos;
-            float *dst = inBuses + k * bufFrames;
-            for (int n = 0; n < bufFrames; ++n) *dst++ = *src++;
-            *tch++ = bufCounter;
-        }
+			// copy+touch inputs
+			tch = inTouched;
+			for (int k = 0; k < minInputs; ++k)
+			{
+				const float *src = inBuffers[k] + bufFramePos;
+				float *dst = inBuses + k * bufFrames;
+				for (int n = 0; n < bufFrames; ++n) *dst++ = *src++;
+				*tch++ = bufCounter;
+			}
 
-        // run engine
-        int64 schedTime;
-        int64 nextTime = oscTime + oscInc;
-        // DEBUG
-        /*
-        if (mScheduler.Ready(nextTime)) {
-            double diff = (mScheduler.NextTime() - mOSCbuftime)*kOSCtoSecs;
-            scprintf("rdy %.6f %.6f %.6f %.6f \n", (mScheduler.NextTime()-gStartupOSCTime) * kOSCtoSecs, (mOSCbuftime-gStartupOSCTime)*kOSCtoSecs, diff, (nextTime-gStartupOSCTime)*kOSCtoSecs);
-        }
-        */
-        while ((schedTime = mScheduler.NextTime()) <= nextTime) {
-            float diffTime = (float)(schedTime - oscTime) * oscToSamples + 0.5;
-            float diffTimeFloor = floor(diffTime);
-            world->mSampleOffset = (int)diffTimeFloor;
-            world->mSubsampleOffset = diffTime - diffTimeFloor;
+			// run engine
+			int64 schedTime;
+			int64 nextTime = oscTime + oscInc;
+			// DEBUG
+			/*
+			if (mScheduler.Ready(nextTime)) {
+				double diff = (mScheduler.NextTime() - mOSCbuftime)*kOSCtoSecs;
+				scprintf("rdy %.6f %.6f %.6f %.6f \n", (mScheduler.NextTime()-gStartupOSCTime) * kOSCtoSecs, (mOSCbuftime-gStartupOSCTime)*kOSCtoSecs, diff, (nextTime-gStartupOSCTime)*kOSCtoSecs);
+			}
+			*/
+			while ((schedTime = mScheduler.NextTime()) <= nextTime) {
+				float diffTime = (float)(schedTime - oscTime) * oscToSamples + 0.5;
+				float diffTimeFloor = floor(diffTime);
+				world->mSampleOffset = (int)diffTimeFloor;
+				world->mSubsampleOffset = diffTime - diffTimeFloor;
 
-            if (world->mSampleOffset < 0) world->mSampleOffset = 0;
-            else if (world->mSampleOffset >= world->mBufLength) world->mSampleOffset = world->mBufLength-1;
+				if (world->mSampleOffset < 0) world->mSampleOffset = 0;
+				else if (world->mSampleOffset >= world->mBufLength) world->mSampleOffset = world->mBufLength-1;
 
-            SC_ScheduledEvent event = mScheduler.Remove();
-            event.Perform();
-        }
-        world->mSampleOffset = 0;
-        world->mSubsampleOffset = 0.f;
+				SC_ScheduledEvent event = mScheduler.Remove();
+				event.Perform();
+			}
+			world->mSampleOffset = 0;
+			world->mSubsampleOffset = 0.f;
 
-        World_Run(world);
+			World_Run(world);
 
-        // copy touched outputs
-        tch = outTouched;
-        for (int k = 0; k < minOutputs; ++k) {
-            float *dst = outBuffers[k] + bufFramePos;
-            if (*tch++ == bufCounter) {
-                float *src = outBuses + k * bufFrames;
-                for (int n = 0; n < bufFrames; ++n) *dst++ = *src++;
-            } else {
-                for (int n = 0; n < bufFrames; ++n) *dst++ = 0.0f;
-            }
-        }
+			// copy touched outputs
+			tch = outTouched;
+			for (int k = 0; k < minOutputs; ++k) {
+				float *dst = outBuffers[k] + bufFramePos;
+				if (*tch++ == bufCounter) {
+					float *src = outBuses + k * bufFrames;
+					for (int n = 0; n < bufFrames; ++n) *dst++ = *src++;
+				} else {
+					for (int n = 0; n < bufFrames; ++n) *dst++ = 0.0f;
+				}
+			}
 
-        // update buffer time
-        oscTime = mOSCbuftime = nextTime;
-    }
+			// update buffer time
+			oscTime = mOSCbuftime = nextTime;
+		}
+	} catch (std::exception& exc) {
+		scprintf("SC_PortAudioDriver: exception in real time: %s\n", exc.what());
+	} catch (...) {
+		scprintf("SC_PortAudioDriver: unknown exception in real time\n");
+	}
 
 	double cpuUsage = (double)Pa_GetStreamCpuLoad(mStream);
 	mAvgCPU = mAvgCPU + 0.1 * (cpuUsage - mAvgCPU);
@@ -2565,85 +2571,91 @@ void SC_VSTAudioDriver::Callback( const void *input, void *output,
 
 //    (void) frameCount, timeInfo, statusFlags; // suppress unused parameter warnings
 
+	try {
     int64 oscTime = 0; // $$$todo FIXME -> PortAudioTimeToHostTime( mStream, timeInfo.outputBufferDacTime );
-    mOSCbuftime = oscTime;
+		mOSCbuftime = oscTime;
 
-    mFromEngine.Free();
-    mToEngine.Perform();
-    mOscPacketsToEngine.Perform();
+		mFromEngine.Free();
+		mToEngine.Perform();
+		mOscPacketsToEngine.Perform();
 
-    int numInputs = mInputChannelCount;
-    int numOutputs = mOutputChannelCount;
-    const float **inBuffers = (const float**)input;
-    float **outBuffers = (float**)output;
+		int numInputs = mInputChannelCount;
+		int numOutputs = mOutputChannelCount;
+		const float **inBuffers = (const float**)input;
+		float **outBuffers = (float**)output;
 
-    int numSamples = NumSamplesPerCallback();
-    int bufFrames = mWorld->mBufLength;
-    int numBufs = numSamples / bufFrames;
+		int numSamples = NumSamplesPerCallback();
+		int bufFrames = mWorld->mBufLength;
+		int numBufs = numSamples / bufFrames;
 
-    float *inBuses = mWorld->mAudioBus + mWorld->mNumOutputs * bufFrames;
-    float *outBuses = mWorld->mAudioBus;
-    int32 *inTouched = mWorld->mAudioBusTouched + mWorld->mNumOutputs;
-    int32 *outTouched = mWorld->mAudioBusTouched;
+		float *inBuses = mWorld->mAudioBus + mWorld->mNumOutputs * bufFrames;
+		float *outBuses = mWorld->mAudioBus;
+		int32 *inTouched = mWorld->mAudioBusTouched + mWorld->mNumOutputs;
+		int32 *outTouched = mWorld->mAudioBusTouched;
 
-    int minInputs = std::min<size_t>(numInputs, mWorld->mNumInputs);
-    int minOutputs = std::min<size_t>(numOutputs, mWorld->mNumOutputs);
+		int minInputs = std::min<size_t>(numInputs, mWorld->mNumInputs);
+		int minOutputs = std::min<size_t>(numOutputs, mWorld->mNumOutputs);
 
-    int bufFramePos = 0;
+		int bufFramePos = 0;
 
-    int64 oscInc = mOSCincrement;
-    double oscToSamples = mOSCtoSamples;
+		int64 oscInc = mOSCincrement;
+		double oscToSamples = mOSCtoSamples;
 
-    // main loop
-    for (int i = 0; i < numBufs; ++i, mWorld->mBufCounter++, bufFramePos += bufFrames) {
-        int32 bufCounter = mWorld->mBufCounter;
-        int32 *tch;
-        // copy+touch inputs
-        tch = inTouched;
-        for (int k = 0; k < minInputs; ++k) {
-            const float *src = inBuffers[k] + bufFramePos;
-            float *dst = inBuses + k * bufFrames;
-            for (int n = 0; n < bufFrames; ++n)
-        *dst++ = *src++;
-            *tch++ = bufCounter;
-        }
-        // run engine
-        //int64 schedTime;
-        //int64 nextTime = oscTime + oscInc;
-        //while ((schedTime = mScheduler.NextTime()) <= nextTime) {
-        //	world->mSampleOffset = (int)((double)(schedTime - oscTime) * oscToSamples);
-        //	SC_ScheduledEvent event = mScheduler.Remove();
-        //	event.Perform();
-        //	world->mSampleOffset = 0;
-        //}
-    // hack for now, schedule events as soon as they arrive
+		// main loop
+		for (int i = 0; i < numBufs; ++i, mWorld->mBufCounter++, bufFramePos += bufFrames) {
+			int32 bufCounter = mWorld->mBufCounter;
+			int32 *tch;
+			// copy+touch inputs
+			tch = inTouched;
+			for (int k = 0; k < minInputs; ++k) {
+				const float *src = inBuffers[k] + bufFramePos;
+				float *dst = inBuses + k * bufFrames;
+				for (int n = 0; n < bufFrames; ++n)
+          *dst++ = *src++;
+				*tch++ = bufCounter;
+			}
+			// run engine
+			//int64 schedTime;
+			//int64 nextTime = oscTime + oscInc;
+			//while ((schedTime = mScheduler.NextTime()) <= nextTime) {
+			//	world->mSampleOffset = (int)((double)(schedTime - oscTime) * oscToSamples);
+			//	SC_ScheduledEvent event = mScheduler.Remove();
+			//	event.Perform();
+			//	world->mSampleOffset = 0;
+			//}
+      // hack for now, schedule events as soon as they arrive
 
-    int64 schedTime;
-    int64 nextTime = oscTime + oscInc;
-    while ((schedTime = mScheduler.NextTime()) != kMaxInt64) {
-    world->mSampleOffset = 0;
-            SC_ScheduledEvent event = mScheduler.Remove();
-            event.Perform();
-            world->mSampleOffset = 0;
-        }
-        World_Run(world);
-        // copy touched outputs
-        tch = outTouched;
-        for (int k = 0; k < minOutputs; ++k) {
-            float *dst = outBuffers[k] + bufFramePos;
-            if (*tch++ == bufCounter) {
-                float *src = outBuses + k * bufFrames;
-                for (int n = 0; n < bufFrames; ++n)
-        *dst++ = *src++;
-        }
-    else {
-                for (int n = 0; n < bufFrames; ++n)
-        *dst++ = 0.0f;
-            }
-        }
-        // update buffer time
-        mOSCbuftime = nextTime;
-    }
+      int64 schedTime;
+      int64 nextTime = oscTime + oscInc;
+      while ((schedTime = mScheduler.NextTime()) != kMaxInt64) {
+        world->mSampleOffset = 0;
+				SC_ScheduledEvent event = mScheduler.Remove();
+				event.Perform();
+				world->mSampleOffset = 0;
+			}
+			World_Run(world);
+			// copy touched outputs
+			tch = outTouched;
+			for (int k = 0; k < minOutputs; ++k) {
+				float *dst = outBuffers[k] + bufFramePos;
+				if (*tch++ == bufCounter) {
+					float *src = outBuses + k * bufFrames;
+					for (int n = 0; n < bufFrames; ++n)
+            *dst++ = *src++;
+  			}
+        else {
+					for (int n = 0; n < bufFrames; ++n)
+            *dst++ = 0.0f;
+				}
+			}
+			// update buffer time
+			mOSCbuftime = nextTime;
+		}
+	} catch (std::exception& exc) {
+		scprintf("SC_PortAudioDriver: exception in real time: %s\n", exc.what());
+	} catch (...) {
+		scprintf("SC_PortAudioDriver: unknown exception in real time\n");
+	}
 
 	//double cpuUsage = (double)Pa_GetStreamCpuLoad(mStream);
   double cpuUsage = 0.0; // $$$todo fix fix. user will check load in host
@@ -2762,7 +2774,7 @@ bool SC_AndroidJNIAudioDriver::DriverStop()
 }
 
 // NB numSamplesPassed genuinely is num samples (not num frames as sometimes in sc code)
-void SC_AndroidJNIAudioDriver::genaudio(int* arri, int numSamplesPassed)
+void SC_AndroidJNIAudioDriver::genaudio(short* arri, int numSamplesPassed)
 {
 	//scprintf("->SC_AndroidJNIAudioDriver::genaudio()\n");
 	
@@ -2770,7 +2782,6 @@ void SC_AndroidJNIAudioDriver::genaudio(int* arri, int numSamplesPassed)
 
 	int numFramesPerCallback = NumSamplesPerCallback();
 	// mOSCbuftime = oscTime;   // TODO, how do we set this?
-	
     mFromEngine.Free();
     mToEngine.Perform();
     mOscPacketsToEngine.Perform();
@@ -2860,7 +2871,7 @@ void SC_AndroidJNIAudioDriver::genaudio(int* arri, int numSamplesPassed)
         	
             if (*tch++ == bufCounter) {
                 float *src = outBuses + k * bufFrames;
-                for (int n = 0; n < bufFrames; ++n) arri[n * minOutputs + k] = (int)((*src++) * 32768.f);
+                for (int n = 0; n < bufFrames; ++n) arri[n * minOutputs + k] = (short)((*src++) * 32767.f);
             } else {
                 for (int n = 0; n < bufFrames; ++n) arri[n * minOutputs + k] = 0;
             }

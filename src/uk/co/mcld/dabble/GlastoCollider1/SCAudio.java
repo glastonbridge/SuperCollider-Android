@@ -17,15 +17,19 @@ class SCAudio extends Thread {
 	private static final String TAG="GlastoCollider1";
 	SuperColliderActivity theApp;
 	
-	final int numOutChans = 2; // note, don't change this without changing the AudioTrack's mono-or-stereo config
-	final int bytesPerSample = 2; // note, don't change this without changing the AudioTrack's 16bit config, OH and all the NDK stuff
-	
-	final int bufSizeFrames = 64 * 16; // what's a good choice on an android device? 
-	// on my tattoo 600 is smallest so (64*8=512) not enough, on the vm even 64*16 not enough!
-	final int bufSizeBytes = bufSizeFrames * numOutChans * bytesPerSample;
-	int sampleRateInHz = 11025; //44100;
+	/**
+	 * SUPERCOLLIDER AUDIO OUTPUT SETTINGS
+	 * 
+	 * Fairly lo-fi by default, there's still room for optimisation.  A good acceptance
+	 * test is to waggle the notifications bar about while running - does it glitch much?
+	 */
+	final int numOutChans = 1; 
+	final int shortsPerSample = 1; 
+	final int bufSizeFrames = 64*8 ;  
+	final int bufSizeShorts = bufSizeFrames * numOutChans * shortsPerSample; 
+	int sampleRateInHz = 11025;
 
-	byte[] audioBuf = new byte[bufSizeBytes];
+	short[] audioBuf = new short[bufSizeShorts];
 	AudioTrack audioTrack;
 	
 	boolean running=true; // user-settable
@@ -34,8 +38,8 @@ class SCAudio extends Thread {
 	// load and declare the NDK C++ methods
     static { System.loadLibrary("scsynth"); }
 	public native void scsynth_android_initlogging();
-	public native int  scsynth_android_start(int srate, int hwBufSize, int numOutChans, String pluginsPath, String synthDefsPath);
-	public native int  scsynth_android_genaudio(byte[] someAudioBuf);
+	public native int  scsynth_android_start(int srate, int hwBufSize, int numOutChans, int shortsPerSample, String pluginsPath, String synthDefsPath);
+	public native int  scsynth_android_genaudio(short[] someAudioBuf);
 	public native void scsynth_android_makeSynth(String synthName);
 	public native void scsynth_android_quit();
     
@@ -55,7 +59,7 @@ class SCAudio extends Thread {
 		Log.i(TAG, "SCAudio - data dir is " + dataDirStr);
 		int result = 0xdead;
 		try {
-			result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numOutChans, dllDirStr, dataDirStr);
+			result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numOutChans, shortsPerSample, dllDirStr, dataDirStr);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -74,26 +78,30 @@ class SCAudio extends Thread {
 	}
 	
 	public void run(){
-		int minSize = AudioTrack.getMinBufferSize(sampleRateInHz, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT);
-		if(minSize > bufSizeBytes){
-			System.err.println("AudioTrack.getMinBufferSize " + minSize + " too large for configured buffer " + bufSizeBytes);
-		}
+		int minSize = AudioTrack.getMinBufferSize(
+				sampleRateInHz, 
+				numOutChans==2?
+						AudioFormat.CHANNEL_CONFIGURATION_STEREO
+						:AudioFormat.CHANNEL_CONFIGURATION_MONO, 
+				AudioFormat.ENCODING_PCM_16BIT);
 		
 		setPriority(Thread.MAX_PRIORITY);
 		android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
 		// instantiate AudioTrack
 		try{
-			audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, AudioFormat.CHANNEL_CONFIGURATION_STEREO,
-					AudioFormat.ENCODING_PCM_16BIT, bufSizeBytes, AudioTrack.MODE_STREAM);
+			audioTrack = new AudioTrack(
+					AudioManager.STREAM_MUSIC, 
+					sampleRateInHz, 
+					numOutChans==2?
+							AudioFormat.CHANNEL_CONFIGURATION_STEREO
+							:AudioFormat.CHANNEL_CONFIGURATION_MONO, 
+					AudioFormat.ENCODING_PCM_16BIT, 
+					minSize, 
+					AudioTrack.MODE_STREAM);
 		}catch(IllegalArgumentException e){
 			System.err.println("DANDROID failed to create AudioTrack object");
 			e.printStackTrace();
-		}
-
-		// hackily set up some dummy audio in the buffer
-		for(int i=0; i<audioBuf.length; i++){
-			audioBuf[i] = 0;
 		}
 
 		audioTrack.play(); // this must be done BEFORE we write data to it
@@ -109,8 +117,8 @@ class SCAudio extends Thread {
 				Log.e(TAG,"SCSynth returned non-zero value "+ndkReturnVal);
 				running=false;
 			}
-			audioTrack.write(audioBuf, 0, audioBuf.length);
-			//Thread.yield();
+			audioTrack.write(audioBuf, 0, bufSizeShorts);
+			Thread.yield();
 		}
 
 		// TODO: tell scsynth to stop, then let *it* call back to stop the audio running
