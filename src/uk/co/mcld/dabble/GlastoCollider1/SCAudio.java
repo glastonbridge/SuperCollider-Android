@@ -25,7 +25,7 @@ class SCAudio extends Thread {
 	 */
 	final int numOutChans = 1; 
 	final int shortsPerSample = 1; 
-	final int bufSizeFrames = 64*8 ;  
+	final int bufSizeFrames = 64*16;  
 	final int bufSizeShorts = bufSizeFrames * numOutChans * shortsPerSample; 
 	int sampleRateInHz = 11025;
 
