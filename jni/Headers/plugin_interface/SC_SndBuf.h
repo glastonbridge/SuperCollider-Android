@@ -95,12 +95,12 @@ inline float lookupi2(float *table, uint32 phase, uint32 mask)
 	return a + frac * b;
 }
 
-inline float lookupi1(float* table0, float* table1, uint32 pphase, int32 lomask)
+inline float lookupi1(const float* table0, const float* table1, uint32 pphase, int32 lomask)
 {
 	float pfrac = PhaseFrac1(pphase);
 	uint32 index = ((pphase >> xlobits1) & lomask);
-	float val1 = *(float*)((char*)table0 + index);
-	float val2 = *(float*)((char*)table1 + index);
+	const float val1 = *(const float*)((char*)table0 + index);
+	const float val2 = *(const float*)((char*)table1 + index);
 	return val1 + val2 * pfrac;
 }
 
