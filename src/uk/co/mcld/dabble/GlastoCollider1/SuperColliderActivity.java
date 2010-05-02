@@ -1,8 +1,13 @@
 package uk.co.mcld.dabble.GlastoCollider1;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.widget.TextView;
 
 /**
@@ -23,21 +28,32 @@ import android.widget.TextView;
  *
  */
 public class SuperColliderActivity extends Activity {
-	
-	SCAudio audioThread;
-	
+	private ServiceConnection conn = new ScServiceConnection();
+	private ISuperCollider.Stub superCollider;
+	private class ScServiceConnection implements ServiceConnection {
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			SuperColliderActivity.this.superCollider = (ISuperCollider.Stub) service;
+			try {
+				superCollider.start();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+
+		}
+	}
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		
 		TextView tv = new TextView(this);
-		tv.setText("Hello dandroid 1.6");
 		setContentView(tv);
-
+		bindService(new Intent("supercollider.START_SERVICE"),conn,BIND_AUTO_CREATE);
 		// Then create the audio thread
-		audioThread = new SCAudio(this); 
-		audioThread.start();
 		tv.setTypeface(Typeface.MONOSPACE);
 		tv.setTextSize(10);
 		tv.setText("\n"
@@ -65,25 +81,17 @@ public class SuperColliderActivity extends Activity {
 				 + "              ,     +~     ,             \n"
 				 + "                 ,                       \n"
              );
-
-		//tv.setText("ok i've outputted it");
-
 	}
 	
-	// Called by Android API when not the front app any more. For this one we'll quit
 	@Override
-	public void onStop(){
-		super.onStop();
-		audioThread.setRunning(false);
-		while(!audioThread.isEnded()){
-			try{
-				Thread.sleep(50L);
-			}catch(InterruptedException err){
-				err.printStackTrace();
-				break;
-			}
+	public void onPause() {
+		super.onPause();
+		try {
+			superCollider.stop();
+		} catch (RemoteException e) {
+			e.printStackTrace();
 		}
-		//finish(); // ask to end when not front
 	}
+
 }
 

@@ -12,7 +12,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+		<service android:name=".ScService" >
+			<intent-filter>
+				<action android:name="supercollider.START_SERVICE" />
+			</intent-filter>
+		</service>
     </application>
     <uses-sdk android:minSdkVersion="4" />
 

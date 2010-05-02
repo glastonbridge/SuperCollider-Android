@@ -15,7 +15,7 @@ import java.io.File;
  */
 class SCAudio extends Thread {
 	private static final String TAG="GlastoCollider1";
-	SuperColliderActivity theApp;
+	ScService theApp;
 	
 	/**
 	 * SUPERCOLLIDER AUDIO OUTPUT SETTINGS
@@ -43,7 +43,7 @@ class SCAudio extends Thread {
 	public native void scsynth_android_makeSynth(String synthName);
 	public native void scsynth_android_quit();
     
-	public SCAudio(SuperColliderActivity theApp){
+	public SCAudio(ScService theApp){
 		this.theApp = theApp;
 		Log.i(TAG, "SCAudio - about to invoke native scsynth_android_initlogging()");
 		scsynth_android_initlogging();
@@ -78,11 +78,13 @@ class SCAudio extends Thread {
 	}
 	
 	public void run(){
+		@SuppressWarnings("all") // the ternary operator does not contain dead code
+		int channelConfiguration = numOutChans==2?
+					AudioFormat.CHANNEL_CONFIGURATION_STEREO
+					:AudioFormat.CHANNEL_CONFIGURATION_MONO;
 		int minSize = AudioTrack.getMinBufferSize(
 				sampleRateInHz, 
-				numOutChans==2?
-						AudioFormat.CHANNEL_CONFIGURATION_STEREO
-						:AudioFormat.CHANNEL_CONFIGURATION_MONO, 
+				channelConfiguration, 
 				AudioFormat.ENCODING_PCM_16BIT);
 		
 		setPriority(Thread.MAX_PRIORITY);
@@ -93,9 +95,7 @@ class SCAudio extends Thread {
 			audioTrack = new AudioTrack(
 					AudioManager.STREAM_MUSIC, 
 					sampleRateInHz, 
-					numOutChans==2?
-							AudioFormat.CHANNEL_CONFIGURATION_STEREO
-							:AudioFormat.CHANNEL_CONFIGURATION_MONO, 
+					channelConfiguration, 
 					AudioFormat.ENCODING_PCM_16BIT, 
 					minSize, 
 					AudioTrack.MODE_STREAM);
