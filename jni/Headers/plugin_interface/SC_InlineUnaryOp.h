@@ -24,16 +24,33 @@
 #include "SC_Types.h"
 #include "SC_Constants.h"
 
-namespace std {
-#include "math.h"
+#include <cmath>
+
+#if _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE /* c99 compliant compiler */
+#define HAVE_C99
+#endif
+
+#ifndef HAVE_C99
+/* needed for msvc compiler at least */
+template <typename float_type>
+inline float_type trunc(float_type arg)
+{
+	if(arg > float_type(0))
+		return std::floor(arg);
+	else
+		return std::ceil(arg);
 }
-using namespace std;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
 inline bool sc_isnan(float x)
 {
+#if defined(__cplusplus) && defined(__GNUC__) && _GLIBCXX_HAVE_ISNAN
+	return std::isnan(x);
+#else
 	return (!(x >= 0.f || x <= 0.f));
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -58,7 +75,11 @@ inline float32 zapgremlins(float32 x)
 
 inline float32 sc_log2(float32 x)
 {
+#ifdef HAVE_C99
+	return ::log2f(std::abs(x));
+#else
 	return static_cast<float32>(std::log(std::abs(x)) * (float32)rlog2);
+#endif
 }
 
 inline float32 sc_log10(float32 x)
@@ -174,9 +195,22 @@ inline float32 sc_ramp(float32 x)
 	return x;
 }
 
+inline float32 sc_sign(float32 x)
+{
+	return x < (float32)0. ? (float32)-1. : (x > (float32)0. ? (float32)1.f : (float32)0.f);
+}
+
 inline float32 sc_distort(float32 x)
 {
 	return x / ((float32)1. + std::abs(x));
+}
+
+inline float32 sc_distortneg(float32 x)
+{
+	if (x < (float32)0.)
+		return x/((float32)1. - x);
+	else
+		return x;
 }
 
 inline float32 sc_softclip(float32 x)
@@ -202,14 +236,16 @@ inline float32 taylorsin(float32 x)
 
 inline float32 sc_trunc(float32 x)
 {
+#ifdef HAVE_C99
 	return truncf(x);
+#else
+	return trunc(x);
+#endif
 }
 
 inline float32 sc_frac(float32 x)
 {
-	// why is this not working?    float32 intpart;
-	double intpart;
-	return std::modf(x, &intpart);
+	return x - std::floor(x);
 }
 
 inline float32 sc_lg3interp(float32 x1, float32 a, float32 b, float32 c, float32 d)
@@ -267,7 +303,11 @@ inline float64 zapgremlins(float64 x)
 
 inline float64 sc_log2(float64 x)
 {
+#ifdef HAVE_C99
+	return ::log2(std::abs(x));
+#else
 	return std::log(std::abs(x)) * rlog2;
+#endif
 }
 
 inline float64 sc_log10(float64 x)
@@ -382,10 +422,24 @@ inline float64 sc_ramp(float64 x)
 	return x;
 }
 
+inline float64 sc_sign(float64 x)
+{
+	return x < (float64)0. ? (float64)-1. : (x > (float64)0. ? (float64)1.f : (float64)0.f);
+}
+
 inline float64 sc_distort(float64 x)
 {
 	return x / ((float64)1. + std::abs(x));
 }
+
+inline float64 sc_distortneg(float64 x)
+{
+	if (x < (float64)0.)
+		return x/((float64)1. - x);
+	else
+		return x;
+}
+
 
 inline float64 sc_softclip(float64 x)
 {
@@ -414,8 +468,7 @@ inline float64 sc_trunc(float64 x)
 
 inline float64 sc_frac(float64 x)
 {
-	float64 intpart;
-	return std::modf(x, &intpart);
+	return x - std::floor(x);
 }
 
 inline float64 sc_wrap1(float64 x)

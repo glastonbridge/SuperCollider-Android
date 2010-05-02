@@ -96,6 +96,20 @@ include $(BUILD_SHARED_LIBRARY)
 
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := OscUGens
+LOCAL_SRC_FILES := \
+    Source/plugins/OscUGens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -D__GCC__
+include $(BUILD_SHARED_LIBRARY)
+
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := BinaryOpUGens
 LOCAL_SRC_FILES := \
     Source/plugins/BinaryOpUGens.cpp
@@ -127,6 +141,48 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := PanUGens
 LOCAL_SRC_FILES := \
     Source/plugins/PanUGens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -D__GCC__
+include $(BUILD_SHARED_LIBRARY)
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := MulAddUGens
+LOCAL_SRC_FILES := \
+    Source/plugins/MulAddUGens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -D__GCC__
+include $(BUILD_SHARED_LIBRARY)
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := UnaryOpUGens
+LOCAL_SRC_FILES := \
+    Source/plugins/UnaryOpUGens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -D__GCC__
+include $(BUILD_SHARED_LIBRARY)
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := TriggerUGens
+LOCAL_SRC_FILES := \
+    Source/plugins/TriggerUGens.cpp
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
