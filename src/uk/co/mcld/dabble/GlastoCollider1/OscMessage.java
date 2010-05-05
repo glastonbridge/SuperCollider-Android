@@ -9,14 +9,20 @@ import android.os.Parcelable;
  *  representation is simple java objects, which are converted to a buffer in 
  *  c++ later.
  * 
- * Usage: Add string command, add arguments.
+ * Simple case: The first add() to a new OscMessage must be a string /command, 
+ *    the trailing arguments can be int, string or float
+ * Compound case: All the adds must be OscMessages
+ * 
+ * The createSynthMessage() and noteMessage methods serve as examples
+ * 
+ * This object is eventually evaluated by scsynth_android_doOsc in JNI
  *  
  * @author alex
  *
  */
 public final class OscMessage implements Parcelable {
 	
-	public static final int defaultNodeId = 1000; // What is this?  Taken from OSCMessages.h
+	public static final int defaultNodeId = 1000; // TODO: What is this?  Taken from OSCMessages.h
 
 	///////////////////////////////////////////////////////////////////////////
 	// Static templates for common operations
@@ -30,6 +36,8 @@ public final class OscMessage implements Parcelable {
 		return synthMessage;
 	}
 	
+	// TODO: This message seems to be getting parsed by doOsc, but it
+	// doesn't affect the output.  What's that all about then eh?
 	public static OscMessage noteMessage(int note, int velocity) {
 	    OscMessage retval =  new OscMessage();
 	    

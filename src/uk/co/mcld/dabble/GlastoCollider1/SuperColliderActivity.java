@@ -92,10 +92,15 @@ public class SuperColliderActivity extends Activity {
 	public void onPause() {
 		super.onPause();
 		try {
-			superCollider.stop();
+			if (superCollider!=null) superCollider.stop();
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public void onDestroy() {
+		unbindService(conn);
 	}
 
 }
