@@ -2786,7 +2786,7 @@ void SC_AndroidJNIAudioDriver::genaudio(short* arri, int numSamplesPassed)
     mToEngine.Perform();
     mOscPacketsToEngine.Perform();
 
-    int numInputs = 0; // TODO later add input
+    int numInputs = world->mNumInputs;
     int numOutputs = world->mNumOutputs;
     //TODO: const float **inBuffers = (const float**)input;
 //not needed?    float **outBuffers = (float**) &audioData;
@@ -2798,12 +2798,12 @@ void SC_AndroidJNIAudioDriver::genaudio(short* arri, int numSamplesPassed)
 	if((numFramesPerCallback * numOutputs) != numSamplesPassed)
 		scprintf("(numFramesPerCallback * numOutputs) != numSamplesPassed, %i %i\n", numFramesPerCallback, numOutputs, numSamplesPassed);
 
-    //TODO LATER float *inBuses = mWorld->mAudioBus + mWorld->mNumOutputs * bufFrames;
+    float *inBuses = mWorld->mAudioBus + mWorld->mNumOutputs * bufFrames;
     float *outBuses = mWorld->mAudioBus;
-    //TODO LATER int32 *inTouched = mWorld->mAudioBusTouched + mWorld->mNumOutputs;
+    int32 *inTouched = mWorld->mAudioBusTouched + mWorld->mNumOutputs;
     int32 *outTouched = mWorld->mAudioBusTouched;
 
-    //TODO LATER int minInputs = std::min<size_t>(numInputs, mWorld->mNumInputs);
+    int minInputs = std::min<size_t>(numInputs, mWorld->mNumInputs);
     int minOutputs = std::min<size_t>(numOutputs, mWorld->mNumOutputs);
 	//scprintf("minOutputs %i\n", minOutputs);
 	
@@ -2823,14 +2823,14 @@ void SC_AndroidJNIAudioDriver::genaudio(short* arri, int numSamplesPassed)
         int32 *tch;
 
         // copy+touch inputs
-        //TODO LATER tch = inTouched;
-        //TODO LATER for (int k = 0; k < minInputs; ++k)
-        //TODO LATER {
-        //TODO LATER     const float *src = inBuffers[k] + bufFramePos;
-        //TODO LATER     float *dst = inBuses + k * bufFrames;
-        //TODO LATER     for (int n = 0; n < bufFrames; ++n) *dst++ = *src++;
-        //TODO LATER     *tch++ = bufCounter;
-        //TODO LATER }
+        tch = inTouched;
+        for (int k = 0; k < minInputs; ++k)
+        {
+             float *dst = inBuses + k * bufFrames;
+             // OK, so source is an interleaved array of ints, target is noninterleaved floats
+             for (int n = 0; n < bufFrames; ++n) *dst++ = (1.f/32767.f) * (float)arri[n * minInputs + k];
+             *tch++ = bufCounter;
+        }
 
         // run engine
         int64 schedTime;
@@ -2868,7 +2868,6 @@ void SC_AndroidJNIAudioDriver::genaudio(short* arri, int numSamplesPassed)
         for (int k = 0; k < minOutputs; ++k) {
         	
         	// OK, so the source is noninterleaved floats, target is an interleaved array of ints
-        	
             if (*tch++ == bufCounter) {
                 float *src = outBuses + k * bufFrames;
                 for (int n = 0; n < bufFrames; ++n) arri[n * minOutputs + k] = (short)((*src++) * 32767.f);

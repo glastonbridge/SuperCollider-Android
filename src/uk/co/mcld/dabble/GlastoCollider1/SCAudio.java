@@ -2,7 +2,9 @@ package uk.co.mcld.dabble.GlastoCollider1;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;
+import android.media.AudioRecord;
 import android.media.AudioTrack;
+import android.media.MediaRecorder;
 import android.util.Log;
 import java.io.File;
 
@@ -23,6 +25,7 @@ class SCAudio extends Thread {
 	 * Fairly lo-fi by default, there's still room for optimisation.  A good acceptance
 	 * test is to waggle the notifications bar about while running - does it glitch much?
 	 */
+	final int numInChans = 1; 
 	final int numOutChans = 1; 
 	final int shortsPerSample = 1; 
 	final int bufSizeFrames = 64*16;  
@@ -30,7 +33,8 @@ class SCAudio extends Thread {
 	int sampleRateInHz = 11025;
 
 	short[] audioBuf = new short[bufSizeShorts];
-	AudioTrack audioTrack;
+	AudioRecord audioRecord; // input
+	AudioTrack audioTrack;   // output
 	
 	boolean running=false; // user-settable
 	boolean ended=false; // whether the audio thread really has stopped and tidied up or not
@@ -38,7 +42,7 @@ class SCAudio extends Thread {
 	// load and declare the NDK C++ methods
     static { System.loadLibrary("scsynth"); }
 	public native void scsynth_android_initlogging();
-	public native int  scsynth_android_start(int srate, int hwBufSize, int numOutChans, int shortsPerSample, String pluginsPath, String synthDefsPath);
+	public native int  scsynth_android_start(int srate, int hwBufSize, int numInChans, int numOutChans, int shortsPerSample, String pluginsPath, String synthDefsPath);
 	public native int  scsynth_android_genaudio(short[] someAudioBuf);
 	public native void scsynth_android_makeSynth(String synthName);
 	public native void scsynth_android_doOsc(Object[] message);
@@ -60,7 +64,7 @@ class SCAudio extends Thread {
 		Log.i(TAG, "SCAudio - data dir is " + dataDirStr);
 		int result = 0xdead;
 		try {
-			result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numOutChans, shortsPerSample, dllDirStr, dataDirStr);
+			result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numInChans, numOutChans, shortsPerSample, dllDirStr, dataDirStr);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -92,10 +96,15 @@ class SCAudio extends Thread {
 		int channelConfiguration = numOutChans==2?
 					AudioFormat.CHANNEL_CONFIGURATION_STEREO
 					:AudioFormat.CHANNEL_CONFIGURATION_MONO;
-		int minSize = AudioTrack.getMinBufferSize(
+		int minSize = Math.max(AudioTrack.getMinBufferSize(
 				sampleRateInHz, 
 				channelConfiguration, 
-				AudioFormat.ENCODING_PCM_16BIT);
+				AudioFormat.ENCODING_PCM_16BIT),
+		      AudioRecord.getMinBufferSize(
+				sampleRateInHz, 
+				channelConfiguration, 
+				AudioFormat.ENCODING_PCM_16BIT)
+		      );
 		
 		setPriority(Thread.MAX_PRIORITY);
 		android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
@@ -113,13 +122,29 @@ class SCAudio extends Thread {
 			System.err.println("DANDROID failed to create AudioTrack object");
 			e.printStackTrace();
 		}
+		// instantiate AudioRecord
+		try{
+			audioRecord = new AudioRecord(
+					MediaRecorder.AudioSource.MIC, 
+					sampleRateInHz, 
+					channelConfiguration, 
+					AudioFormat.ENCODING_PCM_16BIT, 
+					minSize);
+		}catch(IllegalArgumentException e){
+			System.err.println("DANDROID failed to create AudioRecord object");
+			e.printStackTrace();
+		}
 
 		audioTrack.play(); // this must be done BEFORE we write data to it
+		audioRecord.startRecording();
 		
 		//for(int i=0; i< 100; i++){
 		int ndkReturnVal;
 		while(running){
 			// let the NDK make the sound!
+			if(audioRecord.read(audioBuf, 0, bufSizeShorts) != bufSizeShorts){
+				Log.w(TAG, "audioRecord.read didn't read a complete buffer-full");
+			}
 			ndkReturnVal = scsynth_android_genaudio(audioBuf);
 			if(ndkReturnVal!=0) {
 				Log.e(TAG,"SCSynth returned non-zero value "+ndkReturnVal);
@@ -132,6 +157,8 @@ class SCAudio extends Thread {
 		// TODO: tell scsynth to stop, then let *it* call back to stop the audio running
 		audioTrack.stop();
 		audioTrack.release();
+		audioRecord.stop();
+		audioRecord.release();
 		ended = true;
 	}
 }

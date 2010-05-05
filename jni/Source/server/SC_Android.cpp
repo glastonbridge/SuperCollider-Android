@@ -59,7 +59,7 @@ static short* buff;
 static int bufflen;
 
 extern "C" int scsynth_android_start(JNIEnv* env, jobject obj, 
-						jint srate, jint hwBufSize, jint numOutChans, jint shortsPerSample,
+						jint srate, jint hwBufSize, jint numInChans, jint numOutChans, jint shortsPerSample,
 						jstring pluginsPath, jstring synthDefsPath){
 
 	jboolean isCopy;
@@ -67,8 +67,8 @@ extern "C" int scsynth_android_start(JNIEnv* env, jobject obj,
 	buff = (short*) calloc(bufflen,sizeof(short));
 	const char* pluginsPath_c   = env->GetStringUTFChars(pluginsPath,   &isCopy);
 	const char* synthDefsPath_c = env->GetStringUTFChars(synthDefsPath, &isCopy);
-	__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "scsynth_android_start(%i, %i, %i, %s, %s)",
-		(int)srate, (int)hwBufSize, (int)numOutChans, pluginsPath_c, synthDefsPath_c);
+	__android_log_print(ANDROID_LOG_DEBUG, "libscsynth", "scsynth_android_start(%i, %i, %i, %i, %i, %s, %s)",
+		(int)srate, (int)hwBufSize, (int)numInChans, (int)numOutChans, (int)shortsPerSample, pluginsPath_c, synthDefsPath_c);
     setenv("SC_PLUGIN_PATH",   pluginsPath_c,   1);
     setenv("SC_SYNTHDEF_PATH", synthDefsPath_c, 1);
     
@@ -94,8 +94,8 @@ extern "C" int scsynth_android_start(JNIEnv* env, jobject obj,
 	WorldOptions options = kDefaultWorldOptions;
 	options.mPreferredSampleRate = srate;
 	options.mPreferredHardwareBufferFrameSize = hwBufSize;
+	options.mNumInputBusChannels  = numInChans;
 	options.mNumOutputBusChannels = numOutChans;
-	options.mNumInputBusChannels  = 0;
 	
 	// Reduce things down a bit for lower-spec - these are all open for review
 	options.mNumBuffers  = 512;
@@ -257,7 +257,7 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 	static JNINativeMethod methods[] = {
 		// name, signature, function pointer
 		{ "scsynth_android_initlogging", "()V",   (void *) &scsynth_android_initlogging },
-		{ "scsynth_android_start"      , "(IIIILjava/lang/String;Ljava/lang/String;)I",   (void *) &scsynth_android_start       },
+		{ "scsynth_android_start"      , "(IIIIILjava/lang/String;Ljava/lang/String;)I",   (void *) &scsynth_android_start       },
 		{ "scsynth_android_genaudio"   , "([S)I", (void *) &scsynth_android_genaudio    },
 		{ "scsynth_android_makeSynth"  , "(Ljava/lang/String;)V",   (void *) &scsynth_android_makeSynth   },
 		{ "scsynth_android_doOsc" , "([Ljava/lang/Object;)V", (void *) &scsynth_android_doOsc },
