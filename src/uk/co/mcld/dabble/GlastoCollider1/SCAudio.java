@@ -32,7 +32,7 @@ class SCAudio extends Thread {
 	short[] audioBuf = new short[bufSizeShorts];
 	AudioTrack audioTrack;
 	
-	boolean running=true; // user-settable
+	boolean running=false; // user-settable
 	boolean ended=false; // whether the audio thread really has stopped and tidied up or not
 
 	// load and declare the NDK C++ methods
@@ -41,6 +41,7 @@ class SCAudio extends Thread {
 	public native int  scsynth_android_start(int srate, int hwBufSize, int numOutChans, int shortsPerSample, String pluginsPath, String synthDefsPath);
 	public native int  scsynth_android_genaudio(short[] someAudioBuf);
 	public native void scsynth_android_makeSynth(String synthName);
+	public native void scsynth_android_doOsc(Object[] message);
 	public native void scsynth_android_quit();
     
 	public SCAudio(ScService theApp){
@@ -66,7 +67,11 @@ class SCAudio extends Thread {
 				
 		Log.i(TAG, "SCAudio - result of scsynth_android_start() is " + result);
 	}
-
+	
+	public void sendMessage(OscMessage oscMessage) {
+		scsynth_android_doOsc(oscMessage.toArray());
+	}
+	
 	public void setRunning(boolean val){
 		running = val;
 	}
@@ -77,7 +82,12 @@ class SCAudio extends Thread {
 		return ended;
 	}
 	
+	/**
+	 * The main audio loop lives here- or at least the Java part of it.  Most of the actual
+	 * action is done in C++
+	 */
 	public void run(){
+		setRunning(true);
 		@SuppressWarnings("all") // the ternary operator does not contain dead code
 		int channelConfiguration = numOutChans==2?
 					AudioFormat.CHANNEL_CONFIGURATION_STEREO
@@ -105,8 +115,6 @@ class SCAudio extends Thread {
 		}
 
 		audioTrack.play(); // this must be done BEFORE we write data to it
-		
-		scsynth_android_makeSynth("default");
 		
 		//for(int i=0; i< 100; i++){
 		int ndkReturnVal;

@@ -36,8 +36,13 @@ public class SuperColliderActivity extends Activity {
 			SuperColliderActivity.this.superCollider = (ISuperCollider.Stub) service;
 			try {
 				superCollider.start();
-			} catch (RemoteException e) {
-				e.printStackTrace();
+				superCollider.sendMessage(OscMessage.createSynthMessage("default")); 
+				Thread.sleep(4000);
+				superCollider.sendMessage(OscMessage.noteMessage(40, 127));
+			} catch (RemoteException re) {
+				re.printStackTrace();
+			} catch (InterruptedException ie) {
+				ie.printStackTrace();
 			}
 		}
 		@Override

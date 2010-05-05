@@ -14,7 +14,7 @@ import android.os.RemoteException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 
-public class ScService extends Service {
+public class ScService extends Service { 
 	
 	/**
 	 * Our AIDL implementation to allow a bound Activity to talk to us
@@ -28,6 +28,10 @@ public class ScService extends Service {
 		public void stop() throws RemoteException {
 			ScService.this.stop();
 		}
+		@Override
+		public void sendMessage(OscMessage oscMessage) throws RemoteException {
+			ScService.this.audioThread.sendMessage(oscMessage);
+		}
 	};
 	
     private int NOTIFICATION_ID = 1;
@@ -39,12 +43,15 @@ public class ScService extends Service {
     }
 
     public void start() {
-		audioThread.start();
+		if (audioThread == null || !audioThread.isRunning() ) {
+			audioThread = new SCAudio(this);
+			audioThread.start();
+		}
 	}
 
 	@Override
     public void onCreate() {
-		audioThread = new SCAudio(this); 
+		audioThread = null;
     }
 
     /* onStart is called for Android versions < 2.0, but onStartCommand is 

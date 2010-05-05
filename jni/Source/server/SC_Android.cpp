@@ -155,6 +155,78 @@ extern "C" void scsynth_android_makeSynth(JNIEnv* env, jobject obj, jstring theN
     }
 }
 
+/**
+ * Currently we assume that a message is either
+ * 1. A primitive (strings, ints, etc) message
+ * 2. A bundle of other messages
+ * There is no provision for the situation where a message contains both
+ * primitive and bundle data, but you can bundle bundles
+ */
+void makePacket(JNIEnv* env, jobjectArray oscMessage, small_scpacket& packet,int start=0) {
+    int numElements = env->GetArrayLength(oscMessage);
+
+	scprintf("received a message with %i elements\n",numElements);
+    if (numElements<=0) return; // No message
+    int i;
+    jobject obj;
+    const char* stringPtr;
+    jclass integerClass = env->FindClass("java/lang/Integer");
+    jmethodID getIntMethod = env->GetMethodID(integerClass,"intValue","()I");
+    jclass floatClass = env->FindClass("java/lang/Float");
+    jmethodID getFloatMethod = env->GetMethodID(floatClass,"floatValue","()F");
+    jclass stringClass = env->FindClass("java/lang/String");
+    jclass oscClass = env->FindClass("uk/co/mcld/dabble/GlastoCollider1/OscMessage");
+    jmethodID toArrayMethod = env->GetMethodID(oscClass,"toArray","()[Ljava/lang/Object;");
+	obj = env->GetObjectArrayElement(oscMessage,0);
+	if (env->IsInstanceOf(obj,oscClass)) {
+		scprintf("it's a bundle!\n");
+		packet.OpenBundle(0);
+		while (start<numElements) {
+			obj = env->GetObjectArrayElement(oscMessage,start);
+			jobjectArray bundle = (jobjectArray) env->CallObjectMethod(obj,toArrayMethod);
+			scprintf("making a new packet %i\n",start);
+			packet.BeginMsg();
+			makePacket(env, bundle, packet);
+			packet.EndMsg();
+			++start;
+		}
+		packet.CloseBundle();
+	} else if (env->IsInstanceOf(obj,stringClass)) {
+		stringPtr = env->GetStringUTFChars((jstring)obj,NULL);
+		packet.adds(stringPtr);
+		scprintf("cmd %s\n",stringPtr);
+		env->ReleaseStringUTFChars((jstring)obj,stringPtr);
+		packet.maketags(numElements);
+		packet.addtag(',');
+		for (i=1;i<numElements;++i) {
+			obj = env->GetObjectArrayElement(oscMessage,i);
+			if (env->IsInstanceOf(obj,integerClass)) {
+				packet.addtag('i');
+				packet.addi(env->CallIntMethod(obj,getIntMethod));
+			} else if (env->IsInstanceOf(obj,floatClass)) {
+				packet.addtag('f');
+				packet.addf(env->CallFloatMethod(obj,getFloatMethod));
+			} else if (env->IsInstanceOf(obj,stringClass)) {
+				packet.addtag('s');
+				stringPtr = env->GetStringUTFChars((jstring)obj,NULL);
+				scprintf("arg %s\n",stringPtr);
+				packet.adds(stringPtr);
+				env->ReleaseStringUTFChars((jstring)obj,stringPtr);
+			}
+		}
+    }
+}
+
+extern "C" void scsynth_android_doOsc(JNIEnv* env, jobject classobj, jobjectArray oscMessage){
+    if (world->mRunning){
+        small_scpacket packet;
+        makePacket(env,oscMessage,packet);
+        World_SendPacket(world,((packet.size()+4)>>2)*4,  (char*)packet.buf, null_reply_func);
+    }else{
+    	scprintf("scsynth_android_makeSynth: not running!\n");
+    }
+}
+
 extern "C" void scsynth_android_quit(JNIEnv* env, jobject obj){
     OSCMessages messages;
     if (world && world->mRunning){
@@ -188,6 +260,7 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 		{ "scsynth_android_start"      , "(IIIILjava/lang/String;Ljava/lang/String;)I",   (void *) &scsynth_android_start       },
 		{ "scsynth_android_genaudio"   , "([S)I", (void *) &scsynth_android_genaudio    },
 		{ "scsynth_android_makeSynth"  , "(Ljava/lang/String;)V",   (void *) &scsynth_android_makeSynth   },
+		{ "scsynth_android_doOsc" , "([Ljava/lang/Object;)V", (void *) &scsynth_android_doOsc },
 		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },
 	};
 	env->RegisterNatives(cls, methods, sizeof(methods)/sizeof(methods[0]) );
