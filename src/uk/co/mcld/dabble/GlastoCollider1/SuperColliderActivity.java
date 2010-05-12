@@ -8,41 +8,48 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
- * Provides a quick-and-dirty entry point for hacking
- * together the Android interface onto SC.
+ * An example application which exercises some basic features of a SuperCollider-enabled application.
  * 
- * If we're testing SC-Android interface logic in here,
- * move it out into a providing class once it's stable
- * so that we can track library code.
+ * It creates an ScServiceConnection object through which it gets a SuperCollider.Stub.  The stub
+ * object provides access to the SuperCollider Service through IPC- it does not run in the same process 
+ * space as this Application.  The stub is then wired simply through the OnTouchEventListener of the
+ * main GUI widget, to play a note when you touch it.
  * 
- * TODO: Create a location for the library code.
+ * The only SC-A class that this activity needs to be directly aware of is the generated ISuperCollider class
  * 
- * TODO: One day this will all be unit tests, but the
- * current setup is IMO a faster way to develop for now
- * --alexs 20100310
+ * @TODO: be more javadoc-friendly
  * 
  * @author Dan Stowell
+ * @author Alex Shaw
  *
  */
 public class SuperColliderActivity extends Activity {
 	private ServiceConnection conn = new ScServiceConnection();
 	private ISuperCollider.Stub superCollider;
+	private TextView mainWidget = null;
+	
+	/*
+	 * Gets us a SuperCollider service. 
+	 */
 	private class ScServiceConnection implements ServiceConnection {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			SuperColliderActivity.this.superCollider = (ISuperCollider.Stub) service;
 			try {
+				// Kick off the supercollider playback routine
 				superCollider.start();
-				superCollider.sendMessage(OscMessage.createSynthMessage("default")); 
-				Thread.sleep(4000);
-				superCollider.sendMessage(OscMessage.noteMessage(40, 127));
+				// Start a synth playing
+				superCollider.sendMessage(OscMessage.createSynthMessage("default"));
+				setUpControls(); // now we have an audio engine, let the activity hook up its controls
 			} catch (RemoteException re) {
 				re.printStackTrace();
-			} catch (InterruptedException ie) {
-				ie.printStackTrace();
 			}
 		}
 		@Override
@@ -50,18 +57,69 @@ public class SuperColliderActivity extends Activity {
 
 		}
 	}
+	
+	/**
+	 * Provide the glue between the user's greasy fingers and the supercollider's shiny metal body
+	 */
+	public void setUpControls() {
+		if (mainWidget!=null) mainWidget.setOnTouchListener(new OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction()==MotionEvent.ACTION_UP) {
+					// OSC message right here!
+					OscMessage noteMessage = new OscMessage( new Object[] {
+							"/n_set", OscMessage.defaultNodeId, "amp", 0f
+					});
+					try {
+						// Now send it over the interprocess link to SuperCollider running as a Service
+						superCollider.sendMessage(noteMessage);
+					} catch (RemoteException e) {
+						Toast.makeText(
+								SuperColliderActivity.this, 
+								"Failed to communicate with SuperCollider!", 
+								Toast.LENGTH_SHORT);
+						e.printStackTrace();
+					}
+				} else if (event.getAction()==MotionEvent.ACTION_DOWN) {
+					float vol = 1f - event.getY()/mainWidget.getHeight();
+					OscMessage noteMessage = new OscMessage( new Object[] {
+							"/n_set", OscMessage.defaultNodeId, "amp", vol
+					});
+					float freq = 150+event.getX();
+					    OscMessage pitchMessage = new OscMessage( new Object[] {
+							"/n_set", OscMessage.defaultNodeId, "freq", freq
+					});
+					try {
+						superCollider.sendMessage(noteMessage);
+						superCollider.sendMessage(pitchMessage);
+					} catch (RemoteException e) {
+						Toast.makeText(
+								SuperColliderActivity.this, 
+								"Failed to communicate with SuperCollider!", 
+								Toast.LENGTH_SHORT);
+						e.printStackTrace();
+					}
+				}
+				return true;
+			}
+		});
+
+	}
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		TextView tv = new TextView(this);
-		setContentView(tv);
+		mainWidget = new TextView(this);
+		setContentView(mainWidget);
+		// Here's where we request the audio engine
 		bindService(new Intent("supercollider.START_SERVICE"),conn,BIND_AUTO_CREATE);
-		// Then create the audio thread
-		tv.setTypeface(Typeface.MONOSPACE);
-		tv.setTextSize(10);
-		tv.setText("\n"
+		
+		mainWidget.setTypeface(Typeface.MONOSPACE);
+		mainWidget.setTextSize(10);
+		mainWidget.setText("Welcome to a SuperCollider-Android instrument!\n"
+				 +"Y axis is volume, X axis is pitch\n"
+				 +"\n"
 				 + "                  ~+I777?                \n"
 				 + "           :++?I77I====~?I7I             \n"
 				 + "     ~=~+I77I??===+?IIII++~+?7           \n"
@@ -92,6 +150,7 @@ public class SuperColliderActivity extends Activity {
 	public void onPause() {
 		super.onPause();
 		try {
+			// Free up audio when the activity is not in the foreground
 			if (superCollider!=null) superCollider.stop();
 		} catch (RemoteException e) {
 			e.printStackTrace();

@@ -108,7 +108,7 @@ class SCAudio extends Thread {
 		
 		setPriority(Thread.MAX_PRIORITY);
 		android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-
+		boolean gotRecord=false;
 		// instantiate AudioTrack
 		try{
 			audioTrack = new AudioTrack(
@@ -130,30 +130,42 @@ class SCAudio extends Thread {
 					channelConfiguration, 
 					AudioFormat.ENCODING_PCM_16BIT, 
 					minSize);
+			gotRecord = true;
 		}catch(IllegalArgumentException e){
 			System.err.println("DANDROID failed to create AudioRecord object");
 			e.printStackTrace();
 		}
 
 		audioTrack.play(); // this must be done BEFORE we write data to it
-		audioRecord.startRecording();
 		
-		//for(int i=0; i< 100; i++){
 		int ndkReturnVal;
-		while(running){
-			// let the NDK make the sound!
-			if(audioRecord.read(audioBuf, 0, bufSizeShorts) != bufSizeShorts){
-				Log.w(TAG, "audioRecord.read didn't read a complete buffer-full");
+		if (gotRecord) {
+			audioRecord.startRecording();
+			while(running){
+				// let the NDK make the sound!
+				if(audioRecord.read(audioBuf, 0, bufSizeShorts) != bufSizeShorts){
+					Log.w(TAG, "audioRecord.read didn't read a complete buffer-full");
+				}
+				ndkReturnVal = scsynth_android_genaudio(audioBuf);
+				if(ndkReturnVal!=0) {
+					Log.e(TAG,"SCSynth returned non-zero value "+ndkReturnVal);
+					running=false;
+				}
+				audioTrack.write(audioBuf, 0, bufSizeShorts);
+				Thread.yield();
 			}
-			ndkReturnVal = scsynth_android_genaudio(audioBuf);
-			if(ndkReturnVal!=0) {
-				Log.e(TAG,"SCSynth returned non-zero value "+ndkReturnVal);
-				running=false;
+		} else {
+			while(running){
+				// let the NDK make the sound!
+				ndkReturnVal = scsynth_android_genaudio(audioBuf);
+				if(ndkReturnVal!=0) {
+					Log.e(TAG,"SCSynth returned non-zero value "+ndkReturnVal);
+					running=false;
+				}
+				audioTrack.write(audioBuf, 0, bufSizeShorts);
+				Thread.yield();
 			}
-			audioTrack.write(audioBuf, 0, bufSizeShorts);
-			Thread.yield();
 		}
-
 		// TODO: tell scsynth to stop, then let *it* call back to stop the audio running
 		audioTrack.stop();
 		audioTrack.release();

@@ -11,7 +11,7 @@ import android.os.Parcelable;
  * 
  * Simple case: The first add() to a new OscMessage must be a string /command, 
  *    the trailing arguments can be int, string or float
- * Compound case: All the adds must be OscMessages
+ * TODO: BROKEN! Compound case: All the adds must be OscMessages
  * 
  * The createSynthMessage() and noteMessage methods serve as examples
  * 
@@ -63,7 +63,21 @@ public final class OscMessage implements Parcelable {
 	///////////////////////////////////////////////////////////////////////////
 	
 	private LinkedList<Object> message = new LinkedList<Object>();
-	
+	/*
+	 * Creates an empty OscMessage
+	 */
+	public OscMessage() {}
+	/*
+	 * Convenience constructor for creating a whole message in a oner
+	 */
+	public OscMessage(Object[] message) {
+		for (Object token : message) {
+			if (token instanceof Integer) add ((Integer) token);
+			else if (token instanceof Float) add((Float) token);
+			else if (token instanceof Long) add((Long) token);
+			else if (token instanceof String) add ((String) token);
+		}
+	}
 	public boolean add(int i) { return message.add(i); }
 	public boolean add(float f) { return message.add(f); }
 	public boolean add(String s) { return message.add(s); }
