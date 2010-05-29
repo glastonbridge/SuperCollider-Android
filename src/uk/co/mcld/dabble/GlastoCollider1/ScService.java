@@ -11,6 +11,9 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.os.RemoteException;
 
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 
@@ -105,5 +108,25 @@ public class ScService extends Service {
 	public void onDestroy(){
 		stop();
 		super.onDestroy();
+	}
+
+	/**
+	 * Copies the default synth defs out, SCAudio calls it the first time the supercollider
+	 * data dir is created.  TODO: Should ScService handle all file setup stuff?
+	 */
+	public void deliverDefaultSynthDefs() {
+		try {
+			InputStream is = getAssets().open("default.scsyndef");
+			OutputStream os = new FileOutputStream("/sdcard/supercollider/synthdefs/default.scsyndef");
+			byte[] buf = new byte[1024];
+			int bytesRead = 0;
+			while (-1 != (bytesRead = is.read(buf))) {
+				os.write(buf,0,bytesRead);
+			}
+			is.close();
+			os.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

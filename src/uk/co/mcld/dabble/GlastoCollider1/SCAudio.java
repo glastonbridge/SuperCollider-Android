@@ -56,6 +56,7 @@ class SCAudio extends Thread {
 		String dataDirStr = scDirStr+"/synthdefs";;
 		File dataDir = new File(dataDirStr);
 		if(dataDir.mkdirs()) {  
+			theApp.deliverDefaultSynthDefs();
 		} else if (!dataDir.isDirectory()) {
 			Log.e(TAG,"Could not create directory "+dataDirStr);
 		}
@@ -130,7 +131,7 @@ class SCAudio extends Thread {
 					channelConfiguration, 
 					AudioFormat.ENCODING_PCM_16BIT, 
 					minSize);
-			gotRecord = true;
+			gotRecord = (audioRecord.getState()==AudioRecord.STATE_INITIALIZED);
 		}catch(IllegalArgumentException e){
 			System.err.println("DANDROID failed to create AudioRecord object");
 			e.printStackTrace();
