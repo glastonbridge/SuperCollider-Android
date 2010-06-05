@@ -6,11 +6,16 @@
 package uk.co.mcld.dabble.GlastoCollider1;
 
 import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.Log;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,7 +23,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 
 public class ScService extends Service { 
-	
+
+	protected static final String scDirStr = "/sdcard/supercollider";
+	protected static final String dataDirStr = scDirStr+"/synthdefs";
+	protected static final String dllDirStr = "/data/data/uk.co.mcld.dabble.GlastoCollider1/lib"; // TODO: not very extensible, hard coded, generally sucks
+
 	/**
 	 * Our AIDL implementation to allow a bound Activity to talk to us
 	 */
@@ -55,6 +64,28 @@ public class ScService extends Service {
 	@Override
     public void onCreate() {
 		audioThread = null;
+		File dataDir = new File(dataDirStr);
+		if(dataDir.mkdirs()) {  
+			deliverDefaultSynthDefs();
+		} else if (!dataDir.isDirectory()) {
+			//1
+			String ns = Context.NOTIFICATION_SERVICE;
+			NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
+			//2
+			int icon = R.drawable.icon;
+			CharSequence errorText = "Could not establish data directory. Unmount SD card from host?";
+			Notification mNotification = new Notification(icon, errorText, System.currentTimeMillis());
+			//3
+			Context context = getApplicationContext();
+			CharSequence errorTitle = "SuperCollider error";
+			Intent notificationIntent = new Intent(this, ScService.class);
+			PendingIntent errorIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+			mNotification.setLatestEventInfo(context, errorTitle, errorText, errorIntent);
+			//4
+			mNotificationManager.notify(1, mNotification);
+			
+			Log.e(SCAudio.TAG,"Could not create directory " + dataDirStr);
+		}
     }
 
     /* onStart is called for Android versions < 2.0, but onStartCommand is 

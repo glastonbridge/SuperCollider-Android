@@ -6,7 +6,6 @@ import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.util.Log;
-import java.io.File;
 
 /**
  * Responsible for the event loop which drives SuperCollider
@@ -16,7 +15,7 @@ import java.io.File;
  *
  */
 class SCAudio extends Thread {
-	private static final String TAG="GlastoCollider1";
+	protected static final String TAG="SuperCollider-Android";
 	ScService theApp;
 	
 	/**
@@ -52,20 +51,12 @@ class SCAudio extends Thread {
 		this.theApp = theApp;
 		Log.i(TAG, "SCAudio - about to invoke native scsynth_android_initlogging()");
 		scsynth_android_initlogging();
-		String scDirStr = "/sdcard/supercollider";
-		String dataDirStr = scDirStr+"/synthdefs";;
-		File dataDir = new File(dataDirStr);
-		if(dataDir.mkdirs()) {  
-			theApp.deliverDefaultSynthDefs();
-		} else if (!dataDir.isDirectory()) {
-			Log.e(TAG,"Could not create directory "+dataDirStr);
-		}
-		String dllDirStr = "/data/data/uk.co.mcld.dabble.GlastoCollider1/lib"; // TODO: not very extensible, hard coded, generally sucks
 
-		Log.i(TAG, "SCAudio - data dir is " + dataDirStr);
+		Log.i(TAG, "SCAudio - data dir is " + ScService.dataDirStr);
 		int result = 0xdead;
 		try {
-			result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numInChans, numOutChans, shortsPerSample, dllDirStr, dataDirStr);
+			result = scsynth_android_start(sampleRateInHz, bufSizeFrames, numInChans, numOutChans, shortsPerSample, 
+					ScService.dllDirStr, ScService.dataDirStr);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
