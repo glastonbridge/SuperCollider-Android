@@ -73,7 +73,7 @@ public class ScService extends Service {
 			NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
 			//2
 			int icon = R.drawable.icon;
-			CharSequence errorText = "Could not establish data directory. Unmount SD card from host?";
+			CharSequence errorText = "Could not establish data folder. Try unmounting SD card from host";
 			Notification mNotification = new Notification(icon, errorText, System.currentTimeMillis());
 			//3
 			Context context = getApplicationContext();
