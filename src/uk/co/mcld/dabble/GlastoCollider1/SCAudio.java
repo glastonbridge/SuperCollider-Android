@@ -111,7 +111,7 @@ class SCAudio extends Thread {
 					minSize, 
 					AudioTrack.MODE_STREAM);
 		}catch(IllegalArgumentException e){
-			System.err.println("DANDROID failed to create AudioTrack object");
+			Log.e(TAG, "failed to create AudioTrack object: " + e.getMessage());
 			e.printStackTrace();
 		}
 		// instantiate AudioRecord
@@ -124,7 +124,7 @@ class SCAudio extends Thread {
 					minSize);
 			gotRecord = (audioRecord.getState()==AudioRecord.STATE_INITIALIZED);
 		}catch(IllegalArgumentException e){
-			System.err.println("DANDROID failed to create AudioRecord object");
+			Log.e(TAG, "failed to create AudioRecord object: " + e.getMessage());
 			e.printStackTrace();
 		}
 
