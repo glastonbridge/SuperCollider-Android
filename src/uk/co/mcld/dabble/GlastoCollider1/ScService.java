@@ -142,8 +142,8 @@ public class ScService extends Service {
 	}
 
 	/**
-	 * Copies the default synth defs out, SCAudio calls it the first time the supercollider
-	 * data dir is created.  TODO: Should ScService handle all file setup stuff?
+	 * Copies the default synth defs out, ScService calls it the first time the supercollider
+	 * data dir is created.
 	 */
 	public void deliverDefaultSynthDefs() {
 		try {
