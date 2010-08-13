@@ -134,9 +134,11 @@ extern "C" int scsynth_android_start(JNIEnv* env, jobject obj,
 */
 JNIEXPORT jint JNICALL scsynth_android_genaudio ( JNIEnv* env, jobject obj, jshortArray arr )
 {
+	env->GetShortArrayRegion(arr, 0, bufflen, buff);
+
 	((SC_AndroidJNIAudioDriver*)AudioDriver(world))->genaudio(buff, bufflen);
 
-	env->SetShortArrayRegion(arr, 0,bufflen,buff);
+	env->SetShortArrayRegion(arr, 0, bufflen, buff);
 	return 0;
 }
 
