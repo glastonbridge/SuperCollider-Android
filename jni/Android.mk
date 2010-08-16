@@ -1,5 +1,11 @@
 LOCAL_PATH := $(call my-dir)
 
+OLD_LOCAL_PATH := ${LOCAL_PATH}
+
+include ${LOCAL_PATH}/libsndfile.mk
+
+LOCAL_PATH := ${OLD_LOCAL_PATH}
+
 include $(CLEAR_VARS)
 
 LOCAL_LDLIBS    += -L$(SYSROOT)/usr/lib -ldl -llog
