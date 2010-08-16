@@ -41,7 +41,7 @@
 #ifdef SC_WIN32
 
 // temporarily override __attribute__ for (unused), later we'll remove it
-#ifndef __GCC__
+#ifndef __GNUC__
 #define __attribute__(x)
 #endif
 
@@ -57,5 +57,29 @@
 // std::numeric_limits<int32>::max() - so let's undefine them
 #undef max
 #undef min
+
+// we pull some standard math functions to the scope
+using std::floor;
+using std::ceil;
+using std::fabs;
+using std::pow;
+using std::exp;
+using std::log;
+
+using std::sin;
+using std::cos;
+using std::tan;
+using std::asin;
+using std::acos;
+using std::atan;
+using std::atan2;
+
+using std::sinh;
+using std::cosh;
+using std::tanh;
+using std::asinh;
+using std::acosh;
+using std::atanh;
+
 
 #endif

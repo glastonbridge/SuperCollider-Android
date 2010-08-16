@@ -89,11 +89,27 @@ void sc_SetDenormalFlags();
 #include <stdlib.h>
 #include <errno.h>
 
+#ifndef SC_MEMORY_ALIGNMENT
+# error SC_MEMORY_ALIGNMENT undefined
+#endif
 #define SC_DBUG_MEMORY 0
 
 inline void* sc_malloc(size_t size)
 {
+#if SC_MEMORY_ALIGNMENT > 1
+	void* ptr;
+	int err = posix_memalign(&ptr, SC_MEMORY_ALIGNMENT, size);
+	if (err) {
+		if (err != ENOMEM) {
+			perror("sc_malloc");
+			abort();
+		}
+		return 0;
+	}
+	return ptr;
+#else
 	return malloc(size);
+#endif
 }
 
 void* sc_dbg_malloc(size_t size, const char* tag, int line)
@@ -506,7 +522,9 @@ void PerformOSCBundle(World *inWorld, OSC_Packet *inPacket);
 #ifndef NO_LIBSNDFILE
 void World_NonRealTimeSynthesis(struct World *world, WorldOptions *inOptions)
 {
-	World_LoadGraphDefs(world);
+	if (inOptions->mLoadGraphDefs) {
+		World_LoadGraphDefs(world);
+	}
 	int bufLength = world->mBufLength;
 	int fileBufFrames = inOptions->mPreferredHardwareBufferFrameSize;
 	if (fileBufFrames <= 0) fileBufFrames = 8192;

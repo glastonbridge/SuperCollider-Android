@@ -14,6 +14,8 @@ LOCAL_CFLAGS    += -DNO_LIBSNDFILE
 LOCAL_CFLAGS    += -DSC_PLUGIN_EXT=\".so\"
 LOCAL_CFLAGS    += -DSC_LINUX
 LOCAL_CFLAGS    += -DSC_ANDROID
+# TODO there may be a good memory alignment choice for arm
+LOCAL_CFLAGS    += -DSC_MEMORY_ALIGNMENT=1
 # ajs 20091229: the line below reeks of unintended consequences
 LOCAL_CFLAGS    += -D__GCC__
 LOCAL_SRC_FILES := \

@@ -557,7 +557,7 @@ bool downloadToFp(FILE* fp, const char* mFilename){
 		scprintf("CURL perform error while attempting to access remote file. Error code %i\n%s\n", ret, errstr);
 		success = false;
 	//}else{
-	//	scprintf("...done.\n");
+	//	printf("...done.\n");
 	}
 	curl_easy_cleanup(curl);
 	rewind(fp);
