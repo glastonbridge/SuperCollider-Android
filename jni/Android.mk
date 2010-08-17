@@ -200,10 +200,25 @@ LOCAL_CFLAGS    += -DSC_ANDROID
 LOCAL_CFLAGS    += -D__GCC__
 include $(BUILD_SHARED_LIBRARY)
 
+
 include $(CLEAR_VARS)
 LOCAL_MODULE := GendynUGens
 LOCAL_SRC_FILES := \
     Source/plugins/GendynUGens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -D__GCC__
+include $(BUILD_SHARED_LIBRARY)
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := ReverbUGens
+LOCAL_SRC_FILES := \
+    Source/plugins/ReverbUGens.cpp
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
