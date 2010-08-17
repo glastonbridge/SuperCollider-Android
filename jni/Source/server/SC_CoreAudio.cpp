@@ -29,21 +29,25 @@
 #include "SC_Lib_Cintf.h"
 #include <stdlib.h>
 #include <pthread.h>
-#include "time.h"
 
-namespace std {
-// kluge as android lacks algorithm.h
-    template <class T>
-    T min(T l, T r) {
-        return l<r?l:r;
-    }
-    
-    template <class T>
-    T max(T l, T r) {
-        return l>r?l:r;
-    }
-}
-    
+#ifndef SC_ANDROID
+	#include <algorithm>
+#else
+	#include "time.h"
+
+	namespace std {
+		// kluge as android lacks algorithm.h
+		template <class T>
+		T min(T l, T r) {
+			return l<r?l:r;
+		}
+
+		template <class T>
+		T max(T l, T r) {
+			return l>r?l:r;
+		}
+	}
+#endif
 
 using namespace std;
 #ifdef SC_WIN32
@@ -2691,19 +2695,23 @@ bool SC_VSTAudioDriver::DriverStop()
   mIsStreaming = false;
   return true;
 }
+
+int32 server_timeseed()
+{
+	static int32 count = 0;
+	struct timeval tv;
+  double us = timeGetTime( )*1000;
+  int sec = us/1000000;
+  int usec = us-sec*1000000;
+	return (int32)sec ^ (int32)usec ^ count--;
+}
+
 static inline int64 GetCurrentOSCTime()
 {
   #pragma message("check where GetCurrentOSCTime( ) is called and try to defer that somewhere where VstTimeInfo is available")
   //$$$todo fixme
   return 0;
 }
-
-int32 server_timeseed()
-{
-    int64 time = GetCurrentOSCTime();
-    return Hash((int32)(time >> 32) + Hash((int32)time));
-}
-  
 
 
 int64 oscTimeNow()
