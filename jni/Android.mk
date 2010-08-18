@@ -214,3 +214,73 @@ LOCAL_CFLAGS    += -DSC_LINUX
 LOCAL_CFLAGS    += -DSC_ANDROID
 include $(BUILD_SHARED_LIBRARY)
 
+#############################################################
+# Now some ugens from the "sc3-plugins" extensions collection
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := MCLDBufferUGens
+LOCAL_SRC_FILES := \
+    Source/sc3-plugins/MCLDBufferUGens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+include $(BUILD_SHARED_LIBRARY)
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := MCLDFFTUGens
+LOCAL_SRC_FILES := \
+    Source/sc3-plugins/MCLDFFTUGens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+include $(BUILD_SHARED_LIBRARY)
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := MCLDTreeUGens
+LOCAL_SRC_FILES := \
+    Source/sc3-plugins/MCLDTreeUGens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+include $(BUILD_SHARED_LIBRARY)
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := MCLDTriggeredStatsUGens
+LOCAL_SRC_FILES := \
+    Source/sc3-plugins/MCLDTriggeredStatsUgens.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+include $(BUILD_SHARED_LIBRARY)
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := AY_UGen
+LOCAL_SRC_FILES := \
+    Source/sc3-plugins/AY_UGen.cpp \
+    Source/sc3-plugins/AY_libayemu/src/ay8912.c
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Source/sc3-plugins/AY_libayemu/include
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+include $(BUILD_SHARED_LIBRARY)
+
+
