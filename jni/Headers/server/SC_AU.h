@@ -29,7 +29,7 @@
 #include "SC_CoreAudio.h"
 #include "SC_Prototypes.h"
 #include "SC_HiddenWorld.h"
-/* CoreAudio */
+#include <CoreAudio/HostTime.h>
 
 class SC_AUAudioDriver : public SC_CoreAudioDriver
 {

@@ -108,8 +108,8 @@ struct HiddenWorld
 	SC_Semaphore* mQuitProgram;
 
 #ifndef NO_LIBSNDFILE
-/* SNDFILE */
-/* SNDFILE */
+	SNDFILE *mNRTInputFile;
+	SNDFILE *mNRTOutputFile;
 	FILE *mNRTCmdFile;
 #endif
 

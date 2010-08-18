@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "clz.h"
-/* stdexcept */
+#include <stdexcept>
 #ifdef SC_WIN32
 #include <pthread.h>
 #include <winsock2.h>
@@ -323,9 +323,9 @@ int main(int argc, char* argv[])
 		return 1;
 #else
 		int exitCode = 0;
-	 /* try */ {
+		try {
 			World_NonRealTimeSynthesis(world, &options);
-		/* catch */
+		} catch (std::exception& exc) {
 			scprintf("%s\n", exc.what());
 			exitCode = 1;
 		}
@@ -351,7 +351,11 @@ int main(int argc, char* argv[])
 #endif
 
 	if(options.mVerbosity >=0){
+#ifdef NDEBUG
 		scprintf("SuperCollider 3 server ready..\n");
+#else
+		scprintf("SuperCollider 3 server ready (debug build)..\n");
+#endif
 	}
 	fflush(stdout);
 
@@ -369,12 +373,4 @@ int main(int argc, char* argv[])
 #endif
 
 	return 0;
-}
-
-extern "C" { 
-    void _start(int argc, char **argv);
-}
-// bootstrap for android standalone exec
-void _start(int argc, char **argv) {
-        exit (main (argc, argv));
 }

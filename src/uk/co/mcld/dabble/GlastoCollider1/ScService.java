@@ -32,15 +32,15 @@ public class ScService extends Service {
 	 * Our AIDL implementation to allow a bound Activity to talk to us
 	 */
 	private final ISuperCollider.Stub mBinder = new ISuperCollider.Stub() {
-		@Override
+		//@Override
 		public void start() throws RemoteException {
 			ScService.this.start();
 		}
-		@Override
+		//@Override
 		public void stop() throws RemoteException {
 			ScService.this.stop();
 		}
-		@Override
+		//@Override
 		public void sendMessage(OscMessage oscMessage) throws RemoteException {
 			ScService.this.audioThread.sendMessage(oscMessage);
 		}

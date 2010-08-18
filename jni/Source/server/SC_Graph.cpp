@@ -442,7 +442,7 @@ void Graph_RemoveID(World* inWorld, Graph *inGraph)
 {
 	if (!World_RemoveNode(inWorld, &inGraph->mNode)) {
 		int err = kSCErr_Failed; // shouldn't happen..
-/* throw err; */
+		throw err;
 	}
 
 	HiddenWorld* hw = inWorld->hw;
@@ -452,9 +452,9 @@ void Graph_RemoveID(World* inWorld, Graph *inGraph)
     if (!World_AddNode(inWorld, &inGraph->mNode)) {
 		scprintf("mysterious failure in Graph_RemoveID\n");
 		Node_Delete(&inGraph->mNode);
-/* throw an int. */
+		// enums are uncatchable. must throw an int.
 		int err = kSCErr_Failed; // shouldn't happen..
-/* throw err; */
+		throw err;
     }
 
 	//inWorld->hw->mRecentID = id;

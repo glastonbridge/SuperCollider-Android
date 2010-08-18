@@ -107,11 +107,18 @@ SCErr SC_LibCmd::Perform(struct World *inWorld, int inSize, char *inData, ReplyA
 {
 	SCErr err;
 //	int kSendError = 1;		// i.e., 0x01 | 0x02;
- /* try */ {
+	try {
 		err = (mFunc)(inWorld, inSize, inData, inReply);
-	/* catch */
-        if (err)
-            return kSCErr_Failed;
+	} catch (int iexc) {
+		err = iexc;
+	} catch (std::exception& exc) {
+		if(inWorld->mLocalErrorNotification <= 0 && inWorld->mErrorNotification) {
+			CallSendFailureCommand(inWorld, (char*)Name(), exc.what(), inReply);
+			scprintf("FAILURE %s %s\n", (char*)Name(), exc.what());
+		}
+		return kSCErr_Failed;
+	} catch (...) {
+		err = kSCErr_Failed;
 	}
 	if (err && (inWorld->mLocalErrorNotification <= 0 && inWorld->mErrorNotification)) {
 		const char *errstr = SC_ErrorString(err);

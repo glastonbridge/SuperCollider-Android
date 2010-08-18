@@ -29,23 +29,8 @@
 #include "SC_Lib_Cintf.h"
 #include <stdlib.h>
 #include <pthread.h>
-#include "time.h"
+#include <algorithm>
 
-namespace std {
-// kluge as android lacks algorithm.h
-    template <class T>
-    T min(T l, T r) {
-        return l<r?l:r;
-    }
-    
-    template <class T>
-    T max(T l, T r) {
-        return l>r?l:r;
-    }
-}
-    
-
-using namespace std;
 #ifdef SC_WIN32
 
 #else
@@ -517,11 +502,9 @@ bool SC_AudioDriver::Setup()
 	mBuffersPerSecond = sampleRate / mNumSamplesPerCallback;
 	mMaxPeakCounter = (int)mBuffersPerSecond;
 
-#ifndef NDEBUG
 	if(mWorld->mVerbosity >= 0){
 		scprintf("SC_AudioDriver: sample rate = %f, driver's block size = %d\n", sampleRate, mNumSamplesPerCallback);
 	}
-#endif
 
 	return true;
 }

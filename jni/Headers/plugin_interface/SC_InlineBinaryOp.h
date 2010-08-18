@@ -22,10 +22,7 @@
 #define _BinaryOpUGen_
 
 #include "SC_BoundsMacros.h"
-namespace std {
-#include "math.h"
-}
-using namespace std;
+#include <cmath>
 
 inline float sc_mod(float in, float hi)
 {

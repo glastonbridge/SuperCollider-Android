@@ -23,11 +23,8 @@
 
 #include "SC_Endian.h"
 #include "SC_Types.h"
-/* stdexcept */
-namespace std {
-#include "string.h"
-}
-using namespace std;
+#include <stdexcept>
+#include <cstring>
 
 struct netaddr {
 	int socket;
@@ -39,7 +36,7 @@ typedef struct netaddr netaddr;
 
 // ways to fail
 #define BUFFEROVERFLOW return
-/* throw std::runtime_error("buffer overflow") */
+//#define BUFFEROVERFLOW  throw std::runtime_error("buffer overflow")
 
 
 template <int MaxPacketSize = 8192>

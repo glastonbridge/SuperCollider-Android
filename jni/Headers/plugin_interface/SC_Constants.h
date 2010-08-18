@@ -21,10 +21,7 @@
 #ifndef _SC_Constants_
 #define _SC_Constants_
 
-namespace std {
-#include "math.h"
-}
-using namespace std;
+#include <cmath>
 
 #ifndef __FP__
 const double pi     = std::acos(-1.);

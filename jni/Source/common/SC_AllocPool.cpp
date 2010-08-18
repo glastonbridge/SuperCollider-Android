@@ -19,6 +19,7 @@
 */
 
 #include <string.h>
+#include <stdexcept>
 #include "SC_AllocPool.h"
 #include "SC_BoundsMacros.h"
 #include <assert.h>
@@ -196,7 +197,7 @@ AllocAreaPtr AllocPool::NewArea(size_t inAreaSize)
 	void *ptr = (AllocAreaPtr)(mAllocArea)(inAreaSize + kAreaOverhead);
 
 	if (ptr == NULL) {
-        return NULL;
+		throw std::runtime_error("Could not allocate new area");
 	}
 	// AllocAreaPtr area = (AllocAreaPtr)((unsigned long)ptr & ~kAlignMask);
 	AllocAreaPtr area = (AllocAreaPtr)(((unsigned long)ptr + kAlignMask) & ~kAlignMask);
@@ -378,7 +379,7 @@ void* AllocPool::Alloc(size_t inReqSize)
 	// exit paths:
 	found_nothing:
 		//ipostbuf("alloc failed. size: %d\n", inReqSize);
-        return NULL;
+		throw std::runtime_error("alloc failed, increase server's memory allocation (e.g. via ServerOptions)");
 
 	whole_new_area:
 		//ipostbuf("whole_new_area\n");
@@ -482,7 +483,7 @@ void* AllocPool::Realloc(void* inPtr, size_t inReqSize)
 		check_pool();
 		if (outPtr == 0) {
 			//ipostbuf("realloc failed. size: %d\n", inReqSize);
-            return NULL;
+			throw std::runtime_error("realloc failed, increase server's memory allocation (e.g. via ServerOptions)");
 		}
 
 		/* Otherwise copy, free, and exit */

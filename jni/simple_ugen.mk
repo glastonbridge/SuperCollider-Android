@@ -1,0 +1,12 @@
+LOCAL_SRC_FILES := \
+    Source/plugins/$(LOCAL_MODULE).cpp
+LOCAL_SHARED_LIBRARIES = sndfile
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libsndfile
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -D__GCC__
+include $(BUILD_SHARED_LIBRARY)
+

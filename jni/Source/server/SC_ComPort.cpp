@@ -30,7 +30,7 @@
 #include "SC_WorldOptions.h"
 #include "sc_msg_iter.h"
 #include <ctype.h>
-/* stdexcept */
+#include <stdexcept>
 #include <stdarg.h>
 #ifdef SC_WIN32
 # include <winsock2.h>
@@ -302,7 +302,7 @@ SC_UdpInPort::SC_UdpInPort(struct World *inWorld, int inPortNum)
 	: SC_ComPort(inWorld, inPortNum)
 {
 	if ((mSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-/* throw std::runtime_error("failed to create udp socket\n"); */
+		throw std::runtime_error("failed to create udp socket\n");
 	}
 
 	{
@@ -322,7 +322,7 @@ SC_UdpInPort::SC_UdpInPort(struct World *inWorld, int inPortNum)
 	mBindSockAddr.sin_port = htons(mPortNum);
 
 	if (bind(mSocket, (struct sockaddr *)&mBindSockAddr, sizeof(mBindSockAddr)) < 0) {
-/* throw std::runtime_error("unable to bind udp socket\n"); */
+		throw std::runtime_error("unable to bind udp socket\n");
 	}
 
 	Start();
@@ -450,7 +450,7 @@ SC_TcpInPort::SC_TcpInPort(struct World *inWorld, int inPortNum, int inMaxConnec
         mBacklog(inBacklog)
 {
     if((mSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-/* throw std::runtime_error("failed to create tcp socket\n"); */
+        throw std::runtime_error("failed to create tcp socket\n");
     }
 
 	//const int on = 1;
@@ -463,12 +463,12 @@ SC_TcpInPort::SC_TcpInPort(struct World *inWorld, int inPortNum, int inMaxConnec
 
     if(bind(mSocket, (struct sockaddr *)&mBindSockAddr, sizeof(mBindSockAddr)) < 0)
     {
-/* throw std::runtime_error("unable to bind tcp socket\n"); */
+        throw std::runtime_error("unable to bind tcp socket\n");
     }
 
     if(listen(mSocket, mBacklog) < 0)
     {
-/* throw std::runtime_error("unable to listen tcp socket\n"); */
+        throw std::runtime_error("unable to listen tcp socket\n");
     }
 
     Start();

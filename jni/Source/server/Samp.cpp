@@ -22,7 +22,7 @@
 #include "SC_Samp.h"
 #include "SC_Constants.h"
 #include <stdlib.h>
-/* stdexcept */
+#include <stdexcept>
 
 float32 gSine[kSineSize+1];
 float32 gInvSine[kSineSize+1];

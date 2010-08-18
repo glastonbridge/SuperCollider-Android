@@ -1039,6 +1039,10 @@ BufWriteCmd::BufWriteCmd(World *inWorld, ReplyAddress *inReplyAddress)
 {
 }
 
+extern "C" {
+int sndfileFormatInfoFromStrings(SF_INFO *info, const char *headerFormatString, const char *sampleFormatString);
+}
+
 int BufWriteCmd::Init(char *inData, int inSize)
 {
 #ifdef NO_LIBSNDFILE
@@ -1229,7 +1233,7 @@ void AudioStatusCmd::CallDestructor()
 bool AudioStatusCmd::Stage2()
 {
 	small_scpacket packet;
-	packet.adds("status.reply");
+	packet.adds("/status.reply");
 	packet.maketags(10);
 	packet.addtag(',');
 	packet.addtag('i');
@@ -1365,7 +1369,7 @@ int RecvSynthDefCmd::Init(char *inData, int inSize)
 	sc_msg_iter msg(inSize, inData);
 
 	int size = msg.getbsize();
-/* throw kSCErr_WrongArgType; */
+	if (!size) throw kSCErr_WrongArgType;
 
 	mBuffer = (char*)World_Alloc(mWorld, size);
 	msg.getb(mBuffer, size);

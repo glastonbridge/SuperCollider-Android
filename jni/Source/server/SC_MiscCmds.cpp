@@ -27,7 +27,7 @@
 #include "SC_GraphDef.h"
 #include "SC_Group.h"
 #include "SC_UnitDef.h"
-/* stdexcept */
+#include <stdexcept>
 #include "SC_Lib_Cintf.h"
 #include "SC_SequencedCommand.h"
 #include <new>

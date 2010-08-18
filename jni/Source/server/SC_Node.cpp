@@ -24,7 +24,7 @@
 #include "SC_World.h"
 #include "SC_Errors.h"
 #include <stdio.h>
-/* stdexcept */
+#include <stdexcept>
 #include <limits.h>
 #include "SC_Prototypes.h"
 #include "SC_HiddenWorld.h"

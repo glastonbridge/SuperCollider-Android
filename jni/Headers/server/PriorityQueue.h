@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 #include <math.h>
-/* stdexcept */
+#include <stdexcept>
 
 #define SANITYCHECK 0
 
@@ -104,8 +104,8 @@ public:
 		{
 			int j = (i<<1)+1;
 			int k = j+1;
-/* throw std::runtime_error("priority queue unsorted"); */
-/* throw std::runtime_error("priority queue unsorted"); */
+			//if (j<mSize && mEvents[i].mTime > mEvents[j].mTime) throw std::runtime_error("priority queue unsorted");
+			//if (k<mSize && mEvents[i].mTime > mEvents[k].mTime) throw std::runtime_error("priority queue unsorted");
 		}
 	}
 	void DebugDump()

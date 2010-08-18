@@ -1,27 +1,22 @@
 LOCAL_PATH := $(call my-dir)
 
-OLD_LOCAL_PATH := ${LOCAL_PATH}
-
 include ${LOCAL_PATH}/libsndfile.mk
-
-LOCAL_PATH := ${OLD_LOCAL_PATH}
 
 include $(CLEAR_VARS)
 
 LOCAL_LDLIBS    += -L$(SYSROOT)/usr/lib -ldl -llog
+LOCAL_SHARED_LIBRARIES = libsndfile
 LOCAL_MODULE    := scsynth
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/fromscau
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libc
-# rm - now gets an android-specific def in the code LOCAL_CFLAGS    += -DSC_AUDIO_API=NONE
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libsndfile
+LOCAL_CFLAGS    += -DSC_MEMORY_ALIGNMENT=0
 LOCAL_CFLAGS    += -DSC_PLUGIN_EXT=\".so\"
 LOCAL_CFLAGS    += -DSC_LINUX
 LOCAL_CFLAGS    += -DSC_ANDROID
-# ajs 20091229: the line below reeks of unintended consequences
-LOCAL_CFLAGS    += -D__GCC__
 LOCAL_SRC_FILES := \
     Source/server/Rendezvous.cpp \
     Source/server/Samp.cpp \
@@ -48,10 +43,10 @@ LOCAL_SRC_FILES := \
     Source/server/SC_UnitDef.cpp \
     Source/server/SC_World.cpp \
     Source/common/SC_Sem.cpp \
+    Source/libc/glob.c \
     Source/common/SC_DirUtils.cpp \
     Source/common/SC_StringParser.cpp \
     Source/common/SC_AllocPool.cpp \
-    Source/libc/glob.c \
     Source/fromscau/OSCMessages.cpp \
     Source/server/SC_Android.cpp 
 
@@ -62,139 +57,45 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE   := IOUGens
-LOCAL_SRC_FILES := \
-    Source/plugins/IOUGens.cpp
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
-LOCAL_CFLAGS    += -DSC_ANDROID
-LOCAL_CFLAGS    += -D__GCC__
-include $(BUILD_SHARED_LIBRARY)
+include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := NoiseUGens
-LOCAL_SRC_FILES := \
-    Source/plugins/NoiseUGens.cpp
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
-LOCAL_CFLAGS    += -DSC_ANDROID
-LOCAL_CFLAGS    += -D__GCC__
-include $(BUILD_SHARED_LIBRARY)
-
+include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := LFUGens
-LOCAL_SRC_FILES := \
-    Source/plugins/LFUGens.cpp
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
-LOCAL_CFLAGS    += -DSC_ANDROID
-LOCAL_CFLAGS    += -D__GCC__
-include $(BUILD_SHARED_LIBRARY)
-
+include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := OscUGens
-LOCAL_SRC_FILES := \
-    Source/plugins/OscUGens.cpp
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
-LOCAL_CFLAGS    += -DSC_ANDROID
-LOCAL_CFLAGS    += -D__GCC__
-include $(BUILD_SHARED_LIBRARY)
-
+include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := BinaryOpUGens
-LOCAL_SRC_FILES := \
-    Source/plugins/BinaryOpUGens.cpp
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
-LOCAL_CFLAGS    += -DSC_ANDROID
-LOCAL_CFLAGS    += -D__GCC__
-include $(BUILD_SHARED_LIBRARY)
-
+include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := FilterUGens
-LOCAL_SRC_FILES := \
-    Source/plugins/FilterUGens.cpp
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
-LOCAL_CFLAGS    += -DSC_ANDROID
-LOCAL_CFLAGS    += -D__GCC__
-include $(BUILD_SHARED_LIBRARY)
-
+include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := PanUGens
-LOCAL_SRC_FILES := \
-    Source/plugins/PanUGens.cpp
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
-LOCAL_CFLAGS    += -DSC_ANDROID
-LOCAL_CFLAGS    += -D__GCC__
-include $(BUILD_SHARED_LIBRARY)
-
+include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := MulAddUGens
-LOCAL_SRC_FILES := \
-    Source/plugins/MulAddUGens.cpp
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
-LOCAL_CFLAGS    += -DSC_ANDROID
-LOCAL_CFLAGS    += -D__GCC__
-include $(BUILD_SHARED_LIBRARY)
-
+include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := UnaryOpUGens
-LOCAL_SRC_FILES := \
-    Source/plugins/UnaryOpUGens.cpp
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
-LOCAL_CFLAGS    += -DSC_ANDROID
-LOCAL_CFLAGS    += -D__GCC__
-include $(BUILD_SHARED_LIBRARY)
-
+include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := TriggerUGens
-LOCAL_SRC_FILES := \
-    Source/plugins/TriggerUGens.cpp
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
-LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
-LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
-LOCAL_CFLAGS    += -DSC_ANDROID
-LOCAL_CFLAGS    += -D__GCC__
-include $(BUILD_SHARED_LIBRARY)
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := DelayUGens
+include ${LOCAL_PATH}/simple_ugen.mk
 

@@ -26,10 +26,7 @@ For speed we keep this global, although this makes the code non-thread-safe.
 #ifndef _SC_fftlib_
 #define _SC_fftlib_
 
-namespace std {
-#include "string.h"
-}
-using namespace std;
+#include <cstring>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants and structs

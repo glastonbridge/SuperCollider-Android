@@ -27,7 +27,7 @@ A doubly linked list template.
 #ifndef _SC_List_
 #define _SC_List_
 
-/* stdexcept */
+#include <stdexcept>
 #include <assert.h>
 
 
@@ -211,10 +211,10 @@ bool Link<T>::SanityCheck()
 	Link<T>* link = mNext;
 	while (link != this) {
 		if (link->mPrev->mNext != link) {
-/* throw std::runtime_error("Link: bad link <-,->"); */
+			throw std::runtime_error("Link: bad link <-,->");
 		}
 		if (link->mNext->mPrev != link) {
-/* throw std::runtime_error("Link: bad link ->,<-"); */
+			throw std::runtime_error("Link: bad link ->,<-");
 		}
 		link = link->mNext;
 	}

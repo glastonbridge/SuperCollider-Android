@@ -39,13 +39,17 @@ class SCAudio extends Thread {
 	boolean ended=false; // whether the audio thread really has stopped and tidied up or not
 
 	// load and declare the NDK C++ methods
-    static { System.loadLibrary("scsynth"); }
-	public native void scsynth_android_initlogging();
-	public native int  scsynth_android_start(int srate, int hwBufSize, int numInChans, int numOutChans, int shortsPerSample, String pluginsPath, String synthDefsPath);
-	public native int  scsynth_android_genaudio(short[] someAudioBuf);
-	public native void scsynth_android_makeSynth(String synthName);
-	public native void scsynth_android_doOsc(Object[] message);
-	public native void scsynth_android_quit();
+	// Also load dependencies, as the native dlopen won't look in app directories
+    static { 
+    	System.loadLibrary("sndfile");
+    	System.loadLibrary("scsynth"); 
+    }
+	public static native void scsynth_android_initlogging();
+	public static native int  scsynth_android_start(int srate, int hwBufSize, int numInChans, int numOutChans, int shortsPerSample, String pluginsPath, String synthDefsPath);
+	public static native int  scsynth_android_genaudio(short[] someAudioBuf);
+	public static native void scsynth_android_makeSynth(String synthName);
+	public static native void scsynth_android_doOsc(Object[] message);
+	public static native void scsynth_android_quit();
     
 	public SCAudio(ScService theApp){
 		this.theApp = theApp;

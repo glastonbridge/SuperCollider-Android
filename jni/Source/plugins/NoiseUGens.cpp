@@ -240,7 +240,7 @@ void ClipNoise_next(ClipNoise *unit, int inNumSamples)
 	float *out = ZOUT(0);
 
 	RGET
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		ZXP(out) = fcoin(s1, s2, s3);
 	);
 	RPUT
@@ -262,13 +262,12 @@ void GrayNoise_next(GrayNoise *unit, int inNumSamples)
 	RGET
 	int counter = unit->mCounter;
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		counter ^= 1L << (trand(s1,s2,s3) & 31);
 		ZXP(out) = counter * 4.65661287308e-10f;
 	);
 	unit->mCounter = counter;
 	RPUT
-
 }
 
 void GrayNoise_Ctor(GrayNoise* unit)
@@ -286,11 +285,10 @@ void WhiteNoise_next(WhiteNoise *unit, int inNumSamples)
 	float *out = ZOUT(0);
 
 	RGET
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		ZXP(out) = frand2(s1, s2, s3);
 	);
 	RPUT
-
 }
 
 void WhiteNoise_Ctor(WhiteNoise* unit)
@@ -298,7 +296,6 @@ void WhiteNoise_Ctor(WhiteNoise* unit)
 	SETCALC(WhiteNoise_next);
 
 	WhiteNoise_next(unit, 1);
-
 }
 
 
@@ -312,7 +309,7 @@ void PinkNoise_next(PinkNoise *unit, int inNumSamples)
 
 	uint32 total = unit->mTotal;
 	uint32 *dice = unit->mDice;
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		uint32 counter = trand(s1,s2,s3); // Magnus Jonsson's suggestion.
 		uint32 newrand = counter >> 13;
 		int k = (CTZ(counter)) & 15;
@@ -327,7 +324,6 @@ void PinkNoise_next(PinkNoise *unit, int inNumSamples)
 	);
 	unit->mTotal = total;
 	RPUT
-
 }
 
 void PinkNoise_Ctor(PinkNoise* unit)
@@ -357,7 +353,7 @@ void BrownNoise_next(BrownNoise *unit, int inNumSamples)
 	RGET
 
 	float z = unit->mLevel;
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		z += frand8(s1, s2, s3);
 		if (z > 1.f) z = 2.f - z;
 		else if (z < -1.f) z = -2.f - z;
@@ -365,7 +361,6 @@ void BrownNoise_next(BrownNoise *unit, int inNumSamples)
 	);
 	unit->mLevel = z;
 	RPUT
-
 }
 
 void BrownNoise_Ctor(BrownNoise* unit)
@@ -406,14 +401,13 @@ void Dust_next(Dust *unit, int inNumSamples)
 		scale = unit->m_scale;
 	}
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		float z = frand(s1,s2,s3);
 		if (z < thresh) ZXP(out) = z * scale;
 		else  ZXP(out) = 0.f;
 	);
 
 	RPUT
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -445,14 +439,13 @@ void Dust2_next(Dust2 *unit, int inNumSamples)
 		scale = unit->m_scale;
 	}
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		float z = frand(s1,s2,s3);
 		if (z < thresh) ZXP(out) = z * scale - 1.f;
 		else  ZXP(out) = 0.f;
 	);
 
 	RPUT
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -465,13 +458,12 @@ void Crackle_next(Crackle *unit, int inNumSamples)
 	float y2 = unit->m_y2;
 	float y0;
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		ZXP(out) = y0 = fabs(y1 * paramf - y2 - 0.05f);
 		y2 = y1; y1 = y0;
 	);
 	unit->m_y1 = y1;
 	unit->m_y2 = y2;
-
 }
 
 void Crackle_Ctor(Crackle* unit)
@@ -492,11 +484,10 @@ void Logistic_next_1(Logistic *unit, int inNumSamples)
 	double paramf = ZIN0(0);
 	double y1 = unit->m_y1;
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		ZXP(out) = y1 = paramf * y1 * (1.0 - y1);	// chaotic equation
 	);
 	unit->m_y1 = y1;
-
 }
 
 void Logistic_next_k(Logistic *unit, int inNumSamples)
@@ -521,16 +512,14 @@ void Logistic_next_k(Logistic *unit, int inNumSamples)
 	} while (remain);
 	unit->m_y1 = y1;
 	unit->mCounter = counter;
-
 }
 
 void Logistic_Ctor(Logistic* unit)
 {
-	if (INRATE(0) == calc_ScalarRate && ZIN0(1) >= unit->mRate->mSampleRate) {
+	if (INRATE(0) == calc_ScalarRate && ZIN0(1) >= unit->mRate->mSampleRate)
 		SETCALC(Logistic_next_1);
-	} else {
+	else
 		SETCALC(Logistic_next_k);
-	}
 
 	unit->m_y1 = ZIN0(2);
 	unit->mCounter = 0;
@@ -574,7 +563,7 @@ void TRand_next_a(TRand* unit, int inNumSamples)
 	float outval = unit->m_value;
 	float next;
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		next = ZXP(trig);
 		if (next > 0.f &&  prev <= 0.f) {
 			float lo = ZIN0(0);
@@ -629,7 +618,7 @@ void TExpRand_next_a(TExpRand* unit, int inNumSamples)
 	float outval = unit->m_value;
 	float next;
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		next = ZXP(trig);
 		if (next > 0.f && prev <= 0.f) {
 			float lo = ZIN0(0);
@@ -695,7 +684,7 @@ void TIRand_next_a(TIRand* unit, int inNumSamples)
 	float outval = unit->m_value;
 	float next;
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		next = ZXP(trig);
 		if (next > 0.f && prev <= 0.f) {
 			int lo = (int)ZIN0(0);
@@ -751,7 +740,6 @@ void CoinGate_next_k(CoinGate* unit, int inNumSamples)
 
 	ZOUT0(0) = level;
 	unit->m_trig = trig;
-
 }
 
 void CoinGate_next(CoinGate* unit, int inNumSamples)
@@ -762,7 +750,7 @@ void CoinGate_next(CoinGate* unit, int inNumSamples)
 	float prevtrig = unit->m_trig;
 	float probability = ZIN0(0);
 	RGen& rgen = *unit->mParent->mRGen;
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		float curtrig = ZXP(trig);
 		if (prevtrig <= 0.f && curtrig > 0.f) {
 			if(rgen.frand() < probability) {
@@ -776,7 +764,6 @@ void CoinGate_next(CoinGate* unit, int inNumSamples)
 	)
 
 	unit->m_trig = prevtrig;
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -805,7 +792,7 @@ void RandSeed_next(RandSeed* unit, int inNumSamples)
 
 void RandID_Ctor(RandID* unit)
 {
-	 unit->m_id = -1.;
+	unit->m_id = -1.;
 	SETCALC(RandID_next);
 	RandID_next(unit, 1);
 }
@@ -879,13 +866,12 @@ void Hasher_next(Hasher *unit, int inNumSamples)
 	int32 *in = (int32*)ZIN(0);
 	float *out = ZOUT(0);
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		union { float f; int i; } u;
 		int z = ZXP(in);
 		u.i = 0x40000000 | ((uint32)Hash(z) >> 9);
 		ZXP(out) = u.f - 3.f;
 	);
-
 }
 
 void Hasher_Ctor(Hasher* unit)
@@ -903,10 +889,9 @@ void MantissaMask_next(MantissaMask *unit, int inNumSamples)
 	int32 bits = (int32)ZIN0(1);
 	int32 *out = (int32*)ZOUT(0);
 	int32 mask = -1 << (23 - bits);
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		ZXP(out) = mask & ZXP(in);
 	);
-
 }
 
 void MantissaMask_Ctor(MantissaMask* unit)
@@ -941,7 +926,6 @@ void LFClipNoise_next(LFClipNoise *unit, int inNumSamples)
 	unit->mLevel = level;
 	unit->mCounter = counter;
 	RPUT
-
 }
 
 void LFClipNoise_Ctor(LFClipNoise* unit)
@@ -979,7 +963,6 @@ void LFNoise0_next(LFNoise0 *unit, int inNumSamples)
 	unit->mLevel = level;
 	unit->mCounter = counter;
 	RPUT
-
 }
 
 void LFNoise0_Ctor(LFNoise0* unit)
@@ -1020,7 +1003,6 @@ void LFNoise1_next(LFNoise1 *unit, int inNumSamples)
 	unit->mSlope = slope;
 	unit->mCounter = counter;
 	RPUT
-
 }
 
 void LFNoise1_Ctor(LFNoise1* unit)
@@ -1073,7 +1055,6 @@ void LFNoise2_next(LFNoise2 *unit, int inNumSamples)
 	unit->mCurve = curve;
 	unit->mCounter = counter;
 	RPUT
-
 }
 
 void LFNoise2_Ctor(LFNoise2* unit)
@@ -1110,7 +1091,7 @@ void WrapBufRd_next0(Unit *unit, int inNumSamples)
 	float *out[16];
 	for (int i=0; i<numchan; ++i) out[i] = OUT(i);
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		float fpos = ZXP(pos);
 		int ipos = (int)fpos * numchan;
 		ipos = sc_mod(ipos, numframes);
@@ -1142,7 +1123,7 @@ void ClipBufRd_next0(Unit *unit, int inNumSamples)
 	float *out[16];
 	for (int i=0; i<numchan; ++i) out[i] = OUT(i);
 
-	LOOP(inNumSamples,
+	LOOP1(inNumSamples,
 		float fpos = ZXP(pos);
 		int ipos = (int)fpos * numchan;
 		ipos = sc_clip(ipos, 0, maxframe);
@@ -1152,7 +1133,6 @@ void ClipBufRd_next0(Unit *unit, int inNumSamples)
 			index++;
 		}
 	);
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

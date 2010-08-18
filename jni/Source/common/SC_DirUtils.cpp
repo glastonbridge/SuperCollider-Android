@@ -35,7 +35,7 @@
 # include <sys/types.h>
 #endif
 
-/* stdexcept */
+#include <stdexcept>
 #include "SC_DirUtils.h"
 
 #if defined(SC_DARWIN) || defined(SC_IPHONE)
