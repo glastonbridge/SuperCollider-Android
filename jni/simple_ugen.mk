@@ -1,5 +1,5 @@
 LOCAL_SRC_FILES := \
-    Source/plugins/$(LOCAL_MODULE).cpp
+    $(PLUGINS_DIR)/$(LOCAL_MODULE).cpp
 LOCAL_SHARED_LIBRARIES = sndfile
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common

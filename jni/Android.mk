@@ -13,10 +13,12 @@ LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/fromscau
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libc
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libsndfile
-LOCAL_CFLAGS    += -DSC_MEMORY_ALIGNMENT=0
 LOCAL_CFLAGS    += -DSC_PLUGIN_EXT=\".so\"
+# TODO SC_LINUX could be removed once we update sc base to recent trunk (later than 2010-08-17)
 LOCAL_CFLAGS    += -DSC_LINUX
 LOCAL_CFLAGS    += -DSC_ANDROID
+# TODO there may be a good memory alignment choice for arm
+LOCAL_CFLAGS    += -DSC_MEMORY_ALIGNMENT=1
 LOCAL_SRC_FILES := \
     Source/server/Rendezvous.cpp \
     Source/server/Samp.cpp \
@@ -52,8 +54,9 @@ LOCAL_SRC_FILES := \
 
 include $(BUILD_SHARED_LIBRARY)
 
-######################################################
 # plugins:
+
+PLUGINS_DIR := Source/plugins
 
 include $(CLEAR_VARS)
 LOCAL_MODULE   := IOUGens
@@ -99,3 +102,45 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := DelayUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := GendynUGens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := ReverbUGens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+#############################################################
+# Now some ugens from the "sc3-plugins" extensions collection
+
+PLUGINS_DIR := Source/sc3-plugins
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := MCLDBufferUGens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := MCLDFFTUGens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := MCLDTreeUGens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := MCLDTriggeredStatsUgens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := AY_UGen
+LOCAL_SRC_FILES := \
+    Source/sc3-plugins/AY_UGen.cpp \
+    Source/sc3-plugins/AY_libayemu/src/ay8912.c
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Source/sc3-plugins/AY_libayemu/include
+LOCAL_CFLAGS    += -DNO_LIBSNDFILE
+LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -DSC_ANDROID
+include $(BUILD_SHARED_LIBRARY)
