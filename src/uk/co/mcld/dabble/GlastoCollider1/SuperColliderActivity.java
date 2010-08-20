@@ -86,7 +86,9 @@ public class SuperColliderActivity extends Activity {
 							"/n_set", OscMessage.defaultNodeId, "amp", vol
 					});
 					//float freq = 150+event.getX();
-					float freq = sc_midicps(Math.round(event.getX() / 4) + 30);
+					//0 to mainWidget.getWidth() becomes sane-ish range of midinotes:
+					float midinote = event.getX() * (70.f / mainWidget.getWidth()) + 28.f;
+					float freq = sc_midicps(Math.round(midinote));
 					    OscMessage pitchMessage = new OscMessage( new Object[] {
 							"/n_set", OscMessage.defaultNodeId, "freq", freq
 					});
