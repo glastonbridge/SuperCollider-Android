@@ -80,7 +80,7 @@ public class SuperColliderActivity extends Activity {
 								Toast.LENGTH_SHORT);
 						e.printStackTrace();
 					}
-				} else if (event.getAction()==MotionEvent.ACTION_DOWN) {
+				} else if ((event.getAction()==MotionEvent.ACTION_DOWN) || (event.getAction()==MotionEvent.ACTION_MOVE)) {
 					float vol = 1f - event.getY()/mainWidget.getHeight();
 					OscMessage noteMessage = new OscMessage( new Object[] {
 							"/n_set", OscMessage.defaultNodeId, "amp", vol
