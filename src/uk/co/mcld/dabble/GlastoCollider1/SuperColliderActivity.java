@@ -85,7 +85,8 @@ public class SuperColliderActivity extends Activity {
 					OscMessage noteMessage = new OscMessage( new Object[] {
 							"/n_set", OscMessage.defaultNodeId, "amp", vol
 					});
-					float freq = 150+event.getX();
+					//float freq = 150+event.getX();
+					float freq = sc_midicps(Math.round(event.getX() / 4) + 30);
 					    OscMessage pitchMessage = new OscMessage( new Object[] {
 							"/n_set", OscMessage.defaultNodeId, "freq", freq
 					});
@@ -160,6 +161,14 @@ public class SuperColliderActivity extends Activity {
 	@Override
 	public void onDestroy() {
 		unbindService(conn);
+	}
+
+	/**
+	* Convert midi notes to floating point pitches - based on sc_midicps in the SC C++ code
+	*/
+	float sc_midicps(float note)
+	{
+		return (float) (440.0 * Math.pow((float)2., (note - 69.0) * (float)0.083333333333));
 	}
 
 }
