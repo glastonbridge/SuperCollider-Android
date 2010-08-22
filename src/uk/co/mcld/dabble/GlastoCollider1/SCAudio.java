@@ -46,6 +46,7 @@ class SCAudio extends Thread {
     }
 	public static native void scsynth_android_initlogging();
 	public static native int  scsynth_android_start(int srate, int hwBufSize, int numInChans, int numOutChans, int shortsPerSample, String pluginsPath, String synthDefsPath);
+	public static native void scsynth_android_open_udp(int port);
 	public static native int  scsynth_android_genaudio(short[] someAudioBuf);
 	public static native void scsynth_android_makeSynth(String synthName);
 	public static native void scsynth_android_doOsc(Object[] message);
@@ -168,5 +169,8 @@ class SCAudio extends Thread {
 		audioRecord.stop();
 		audioRecord.release();
 		ended = true;
+	}
+	public void openUDP(int port) {
+		scsynth_android_open_udp(port);
 	}
 }

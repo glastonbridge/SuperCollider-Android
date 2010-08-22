@@ -24,9 +24,9 @@ import java.lang.reflect.Field;
 
 public class ScService extends Service { 
 
-	protected static final String scDirStr = "/sdcard/supercollider";
-	protected static final String dataDirStr = scDirStr+"/synthdefs";
-	protected static final String dllDirStr = "/data/data/uk.co.mcld.dabble.GlastoCollider1/lib"; // TODO: not very extensible, hard coded, generally sucks
+	public static final String scDirStr = "/sdcard/supercollider";
+	public static final String dataDirStr = scDirStr+"/synthdefs";
+	public static final String dllDirStr = "/data/data/uk.co.mcld.dabble.GlastoCollider1/lib"; // TODO: not very extensible, hard coded, generally sucks
 
 	/**
 	 * Our AIDL implementation to allow a bound Activity to talk to us
@@ -43,6 +43,9 @@ public class ScService extends Service {
 		//@Override
 		public void sendMessage(OscMessage oscMessage) throws RemoteException {
 			ScService.this.audioThread.sendMessage(oscMessage);
+		}
+		public void openUDP(int port) throws RemoteException {
+			ScService.this.audioThread.openUDP(port);
 		}
 	};
 	

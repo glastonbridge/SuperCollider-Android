@@ -302,7 +302,14 @@ SC_UdpInPort::SC_UdpInPort(struct World *inWorld, int inPortNum)
 	: SC_ComPort(inWorld, inPortNum)
 {
 	if ((mSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-		throw std::runtime_error("failed to create udp socket\n");
+
+		char errbuff[50];
+#ifdef SC_LINUX
+		sprintf(errbuff,"failed to create udp socket, error %i\n",errno);
+#else
+		sprintf(errbuff,"failed to create udp socket\n");
+#endif
+		throw std::runtime_error(errbuff);
 	}
 
 	{
@@ -319,10 +326,17 @@ SC_UdpInPort::SC_UdpInPort(struct World *inWorld, int inPortNum)
 	bzero((char *)&mBindSockAddr, sizeof(mBindSockAddr));
 	mBindSockAddr.sin_family = AF_INET;
 	mBindSockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	mBindSockAddr.sin_port = htons(mPortNum);
+	mBindSockAddr.sin_port = 	htons(mPortNum);
+	scprintf("Listening on port %i\n",mPortNum);
 
 	if (bind(mSocket, (struct sockaddr *)&mBindSockAddr, sizeof(mBindSockAddr)) < 0) {
-		throw std::runtime_error("unable to bind udp socket\n");
+		char errbuff[50];
+#ifdef SC_LINUX
+		sprintf(errbuff,"unable to bind udp socket, error %i\n",errno);
+#else
+		sprintf(errbuff,"unable to bind udp socket\n");
+#endif
+		throw std::runtime_error(errbuff);
 	}
 
 	Start();

@@ -39,7 +39,7 @@ public class SuperColliderActivity extends Activity {
 	 * Gets us a SuperCollider service. 
 	 */
 	private class ScServiceConnection implements ServiceConnection {
-		@Override
+		//@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			SuperColliderActivity.this.superCollider = (ISuperCollider.Stub) service;
 			try {
@@ -52,7 +52,7 @@ public class SuperColliderActivity extends Activity {
 				re.printStackTrace();
 			}
 		}
-		@Override
+		//@Override
 		public void onServiceDisconnected(ComponentName name) {
 
 		}
@@ -63,7 +63,7 @@ public class SuperColliderActivity extends Activity {
 	 */
 	public void setUpControls() {
 		if (mainWidget!=null) mainWidget.setOnTouchListener(new OnTouchListener() {
-			@Override
+			//@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction()==MotionEvent.ACTION_UP) {
 					// OSC message right here!
@@ -103,7 +103,11 @@ public class SuperColliderActivity extends Activity {
 				return true;
 			}
 		});
-
+		try {
+			superCollider.openUDP(4040);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/** Called when the activity is first created. */
@@ -159,6 +163,7 @@ public class SuperColliderActivity extends Activity {
 	
 	@Override
 	public void onDestroy() {
+		super.onDestroy();
 		unbindService(conn);
 	}
 

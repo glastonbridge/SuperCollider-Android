@@ -58,6 +58,10 @@ static World * world;
 static short* buff;
 static int bufflen;
 
+extern "C" void scsynth_android_open_udp(JNIEnv* env, jobject obj, jint port) {
+	World_OpenUDP(world,port);
+}
+
 extern "C" int scsynth_android_start(JNIEnv* env, jobject obj, 
 						jint srate, jint hwBufSize, jint numInChans, jint numOutChans, jint shortsPerSample,
 						jstring pluginsPath, jstring synthDefsPath){
@@ -259,10 +263,11 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 	static JNINativeMethod methods[] = {
 		// name, signature, function pointer
 		{ "scsynth_android_initlogging", "()V",   (void *) &scsynth_android_initlogging },
-		{ "scsynth_android_start"      , "(IIIIILjava/lang/String;Ljava/lang/String;)I",   (void *) &scsynth_android_start       },
+		{ "scsynth_android_open_udp"   , "(I)V",  (void *) &scsynth_android_open_udp       },
+		{ "scsynth_android_start"      , "(IIIIILjava/lang/String;Ljava/lang/String;)I",   (void *) &scsynth_android_start    },
 		{ "scsynth_android_genaudio"   , "([S)I", (void *) &scsynth_android_genaudio    },
 		{ "scsynth_android_makeSynth"  , "(Ljava/lang/String;)V",   (void *) &scsynth_android_makeSynth   },
-		{ "scsynth_android_doOsc" , "([Ljava/lang/Object;)V", (void *) &scsynth_android_doOsc },
+		{ "scsynth_android_doOsc"      , "([Ljava/lang/Object;)V", (void *) &scsynth_android_doOsc },
 		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },
 	};
 	env->RegisterNatives(cls, methods, sizeof(methods)/sizeof(methods[0]) );
