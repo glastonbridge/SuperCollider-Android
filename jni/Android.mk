@@ -14,10 +14,10 @@ LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/fromscau
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libc
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libsndfile
 LOCAL_CFLAGS    += -DSC_PLUGIN_EXT=\".so\"
-# TODO SC_LINUX could be removed once we update sc base to recent trunk (later than 2010-08-17)
+# TODO SC_LINUX could be removed once we update sc base to recent trunk (later than 2010-08-18)
 LOCAL_CFLAGS    += -DSC_LINUX
 LOCAL_CFLAGS    += -DSC_ANDROID
-# TODO there may be a good memory alignment choice for arm
+# TODO there may be a good memory alignment choice for arm: 1 generally ok, maybe 16 when neon.
 LOCAL_CFLAGS    += -DSC_MEMORY_ALIGNMENT=1
 LOCAL_SRC_FILES := \
     Source/server/Rendezvous.cpp \
@@ -119,9 +119,9 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := MCLDBufferUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
-include $(CLEAR_VARS)
-LOCAL_MODULE := MCLDFFTUGens
-include ${LOCAL_PATH}/simple_ugen.mk
+#include $(CLEAR_VARS)
+#LOCAL_MODULE := MCLDFFTUGens
+#include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := MCLDTreeUGens

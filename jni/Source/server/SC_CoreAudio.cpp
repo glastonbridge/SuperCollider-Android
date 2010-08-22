@@ -31,7 +31,6 @@
 #include <pthread.h>
 #include <algorithm>
 
-using namespace std;
 #ifdef SC_WIN32
 
 #else
