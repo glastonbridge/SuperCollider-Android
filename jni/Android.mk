@@ -59,6 +59,28 @@ include $(BUILD_SHARED_LIBRARY)
 PLUGINS_DIR := Source/plugins
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := FFT_UGens
+LOCAL_SRC_FILES := \
+    Source/common/SC_fftlib.cpp \
+    Source/common/fftlib.c \
+    Source/plugins/SCComplex.cpp \
+    Source/plugins/FFT_UGens.cpp \
+    Source/plugins/PV_UGens.cpp \
+    Source/plugins/PartitionedConvolution.cpp \
+    Source/plugins/FFTInterfaceTable.cpp
+#LOCAL_LDLIBS    += $(LOCAL_PATH)/StaticLibs/libfftw3f.a
+#LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/fftw
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libsndfile
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Source/plugins
+LOCAL_CFLAGS    += -D__linux__
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -DSC_FFT_GREEN=1
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
 LOCAL_MODULE   := IOUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
@@ -119,10 +141,6 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := MCLDBufferUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
-#include $(CLEAR_VARS)
-#LOCAL_MODULE := MCLDFFTUGens
-#include ${LOCAL_PATH}/simple_ugen.mk
-
 include $(CLEAR_VARS)
 LOCAL_MODULE := MCLDTreeUGens
 include ${LOCAL_PATH}/simple_ugen.mk
@@ -130,6 +148,21 @@ include ${LOCAL_PATH}/simple_ugen.mk
 include $(CLEAR_VARS)
 LOCAL_MODULE := MCLDTriggeredStatsUgens
 include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := MCLDFFTUGens
+LOCAL_SRC_FILES := \
+    $(PLUGINS_DIR)/$(LOCAL_MODULE).cpp \
+    Source/plugins/SCComplex.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libsndfile
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Source/plugins
+LOCAL_CFLAGS    += -D__linux__
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -DSC_FFT_GREEN=1
+include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := AY_UGen
