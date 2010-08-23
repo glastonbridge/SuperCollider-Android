@@ -5,7 +5,8 @@ LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libsndfile
-LOCAL_CFLAGS    += -DSC_LINUX
+# TODO why doesn't the ndk define __linux__? 
+LOCAL_CFLAGS    += -D__linux__
 LOCAL_CFLAGS    += -DSC_ANDROID
 LOCAL_CFLAGS    += -D__GCC__
 include $(BUILD_SHARED_LIBRARY)

@@ -36,7 +36,7 @@
 #define SC_AUDIO_API_COREAUDIOIPHONE	5
 #define SC_AUDIO_API_ANDROIDJNI 6
 
-#ifdef SC_WIN32
+#ifdef _WIN32
 # ifndef SC_INNERSC
 #  define SC_AUDIO_API SC_AUDIO_API_PORTAUDIO
 # else
@@ -360,7 +360,6 @@ class SC_AndroidJNIAudioDriver : public SC_AudioDriver
 {
 
 protected:
-        //NOT NEEDED? float * audioData;
 
     // Driver interface methods
         virtual bool DriverSetup(int* outNumSamplesPerCallback, double* outSampleRate);
@@ -372,8 +371,6 @@ public:
         virtual ~SC_AndroidJNIAudioDriver();
 
         void genaudio(short* arri, int numSamples);
-    //void Run(const AudioBufferList* inInputData, AudioBufferList* outOutputData, int64 oscTime);
-
 
 };
 
@@ -381,8 +378,6 @@ inline SC_AudioDriver* SC_NewAudioDriver(struct World *inWorld)
 {
     return new SC_AndroidJNIAudioDriver(inWorld);
 }
-
-
 
 #endif // SC_AUDIO_API == SC_AUDIO_API_ANDROIDJNI
 

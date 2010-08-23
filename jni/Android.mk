@@ -14,8 +14,8 @@ LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/fromscau
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libc
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libsndfile
 LOCAL_CFLAGS    += -DSC_PLUGIN_EXT=\".so\"
-# TODO SC_LINUX could be removed once we update sc base to recent trunk (later than 2010-08-18)
-LOCAL_CFLAGS    += -DSC_LINUX
+# TODO why doesn't the ndk define __linux__? 
+LOCAL_CFLAGS    += -D__linux__
 LOCAL_CFLAGS    += -DSC_ANDROID
 # TODO there may be a good memory alignment choice for arm: 1 generally ok, maybe 16 when neon.
 LOCAL_CFLAGS    += -DSC_MEMORY_ALIGNMENT=1
@@ -27,7 +27,6 @@ LOCAL_SRC_FILES := \
     Source/server/SC_ComPort.cpp \
     Source/server/SC_Complex.cpp \
     Source/server/SC_CoreAudio.cpp \
-    Source/server/SC_Dimension.cpp \
     Source/server/SC_Errors.cpp \
     Source/server/SC_Graph.cpp \
     Source/server/SC_GraphDef.cpp \
@@ -50,6 +49,7 @@ LOCAL_SRC_FILES := \
     Source/common/SC_StringParser.cpp \
     Source/common/SC_AllocPool.cpp \
     Source/fromscau/OSCMessages.cpp \
+    Source/server/SC_Audio_Android.cpp \
     Source/server/SC_Android.cpp 
 
 include $(BUILD_SHARED_LIBRARY)
@@ -141,6 +141,6 @@ LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Source/sc3-plugins/AY_libayemu/include
 LOCAL_CFLAGS    += -DNO_LIBSNDFILE
-LOCAL_CFLAGS    += -DSC_LINUX
+LOCAL_CFLAGS    += -D__linux__
 LOCAL_CFLAGS    += -DSC_ANDROID
 include $(BUILD_SHARED_LIBRARY)

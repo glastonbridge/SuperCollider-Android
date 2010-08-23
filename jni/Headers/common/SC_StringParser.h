@@ -1,7 +1,7 @@
 // emacs:		-*- c++ -*-
 // file:		SC_StringParser.h
 // copyright:	2003-2006 stefan kersten
-// cvs:			$Id: SC_StringParser.h 9082 2009-04-20 08:38:27Z danstowell $
+// cvs:			$Id: SC_StringParser.h 10259 2010-08-17 14:09:53Z danstowell $
 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
@@ -23,7 +23,7 @@
 
 #define SC_MAX_TOKEN_LENGTH 256
 
-#ifdef SC_WIN32
+#ifdef _WIN32
 	#define SC_STRPARSE_PATHDELIMITER ';'
 #else
 	#define SC_STRPARSE_PATHDELIMITER ':'

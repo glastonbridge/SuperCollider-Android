@@ -31,7 +31,7 @@
 #include <pthread.h>
 #include <algorithm>
 
-#ifdef SC_WIN32
+#ifdef _WIN32
 
 #else
 #include <sys/time.h>
@@ -42,7 +42,7 @@
 #endif
 
 
-#ifdef SC_WIN32
+#ifdef _WIN32
 #include "SC_Win32Utils.h"
 #endif
 
@@ -375,13 +375,13 @@ void FreeOSCPacket(FifoMsg *inMsg)
 	OSC_Packet *packet = (OSC_Packet*)inMsg->mData;
 	if (packet) {
 		inMsg->mData = 0;
-#ifdef SC_WIN32
+#ifdef _WIN32
 #pragma message("$$$todo fixme hack for the 'uninitialized packet->mData ptr when using MSVC 7.1 debug")
     if (packet->mData != reinterpret_cast<char*>(0xcdcdcdcd))
   		free(packet->mData);
-#else //#ifdef SC_WIN32
+#else //#ifdef _WIN32
     free(packet->mData);
-#endif //#ifdef SC_WIN32
+#endif //#ifdef _WIN32
 		free(packet);
 	}
 }
@@ -1024,7 +1024,7 @@ void SC_CoreAudioDriver::Run(const AudioBufferList* inInputData,
 		int numSamplesPerCallback = NumSamplesPerCallback();
 		mOSCbuftime = oscTime;
 
-#if SC_DARWIN
+#ifdef __APPLE__
 		sc_SetDenormalFlags();
 #endif
 
@@ -1800,7 +1800,7 @@ void SC_iCoreAudioDriver::Run(const AudioBufferList* inInputData,
 		int numSamplesPerCallback = NumSamplesPerCallback();
 		mOSCbuftime = oscTime;
 
-#if SC_DARWIN
+#ifdef __APPLE__
 		sc_SetDenormalFlags();
 #endif
 
@@ -2705,200 +2705,3 @@ void initializeScheduler()
 }
 
 #endif // SC_AUDIO_API_INNERSC_VST
-
-
-// =====================================================================
-// SC_AUDIO_API_ANDROIDJNI
-#if SC_AUDIO_API == SC_AUDIO_API_ANDROIDJNI
-
-SC_AndroidJNIAudioDriver::SC_AndroidJNIAudioDriver(struct World *inWorld)
-		: SC_AudioDriver(inWorld)
-{
-	//NOT NEEDED? audioData = 0;
-}
-
-SC_AndroidJNIAudioDriver::~SC_AndroidJNIAudioDriver()
-{
-	//NOT NEEDED? if(audioData) free(audioData);
-}
-
-bool SC_AndroidJNIAudioDriver::DriverSetup(int* outNumSamplesPerCallback, double* outSampleRate)
-{
-	// Here we are setting these to the values that were originally passed in as options.
-	// In current android impl, these values came directly from java as args to scsynth_android_start().
-	*outNumSamplesPerCallback = mPreferredHardwareBufferFrameSize;
-	*outSampleRate = mPreferredSampleRate;
-
-	int audioDataSize = mPreferredHardwareBufferFrameSize * mWorld->mNumOutputs * sizeof(float);
-	scprintf("SC_AndroidJNIAudioDriver::DriverSetup: allocating %i bytes for %i frames\n", audioDataSize, mPreferredHardwareBufferFrameSize);
-	//NOT NEEDED? audioData = (float*) malloc(audioDataSize);
-
-	if(mWorld->mVerbosity >= 0){
-		scprintf("<-SC_AndroidJNIAudioDriver::Setup world %08X, mPreferredHardwareBufferFrameSize %i, mPreferredSampleRate %i, outNumSamplesPerCallback %i, outSampleRate %g\n", 
-				mWorld, mPreferredHardwareBufferFrameSize, mPreferredSampleRate, *outNumSamplesPerCallback, *outSampleRate);
-	}
-	return true;
-}
-
-bool SC_AndroidJNIAudioDriver::DriverStart()
-{
-	if(mWorld->mVerbosity >= 0){
-		scprintf("SC_AndroidJNIAudioDriver::DriverStart\n");
-	}
-	// no-op, nothing to do here
-	return true;
-}
-
-bool SC_AndroidJNIAudioDriver::DriverStop()
-{
-	if(mWorld->mVerbosity >= 0){
-		scprintf("SC_AndroidJNIAudioDriver::DriverStop\n");
-	}
-	
-	// TODO: send a message back to java to say stop the audio loop
-	
-	return true;
-}
-
-// NB numSamplesPassed genuinely is num samples (not num frames as sometimes in sc code)
-void SC_AndroidJNIAudioDriver::genaudio(short* arri, int numSamplesPassed)
-{
-	//scprintf("->SC_AndroidJNIAudioDriver::genaudio()\n");
-	
-	World *world = mWorld;
-
-	int numFramesPerCallback = NumSamplesPerCallback();
-	// mOSCbuftime = oscTime;   // TODO, how do we set this?
-    mFromEngine.Free();
-    mToEngine.Perform();
-    mOscPacketsToEngine.Perform();
-
-    int numInputs = world->mNumInputs;
-    int numOutputs = world->mNumOutputs;
-    //TODO: const float **inBuffers = (const float**)input;
-//not needed?    float **outBuffers = (float**) &audioData;
-
-    int bufFrames = mWorld->mBufLength;
-    int numBufs = numFramesPerCallback / bufFrames;
-
-	// TODO: rm once stable:
-	if((numFramesPerCallback * numOutputs) != numSamplesPassed)
-		scprintf("(numFramesPerCallback * numOutputs) != numSamplesPassed, %i %i\n", numFramesPerCallback, numOutputs, numSamplesPassed);
-
-    float *inBuses = mWorld->mAudioBus + mWorld->mNumOutputs * bufFrames;
-    float *outBuses = mWorld->mAudioBus;
-    int32 *inTouched = mWorld->mAudioBusTouched + mWorld->mNumOutputs;
-    int32 *outTouched = mWorld->mAudioBusTouched;
-
-    int minInputs = std::min<size_t>(numInputs, mWorld->mNumInputs);
-    int minOutputs = std::min<size_t>(numOutputs, mWorld->mNumOutputs);
-	//scprintf("minOutputs %i\n", minOutputs);
-	
-    int bufFramePos = 0;
-
-    int64 oscTime = mOSCbuftime;
-    int64 oscInc = mOSCincrement;
-    double oscToSamples = mOSCtoSamples;
-	//scprintf("oscTime %li\n", oscTime);
-	//scprintf("oscInc %li\n", oscInc);
-	//scprintf("oscToSamples %g\n", oscToSamples);
-
-    // main loop
-    for (int i = 0; i < numBufs; ++i, mWorld->mBufCounter++, bufFramePos += bufFrames)
-    {
-        int32 bufCounter = mWorld->mBufCounter;
-        int32 *tch;
-
-        // copy+touch inputs
-        tch = inTouched;
-        for (int k = 0; k < minInputs; ++k)
-        {
-             float *dst = inBuses + k * bufFrames;
-             // OK, so source is an interleaved array of ints, target is noninterleaved floats
-             for (int n = 0; n < bufFrames; ++n) *dst++ = (1.f/32767.f) * (float)arri[n * minInputs + k];
-             *tch++ = bufCounter;
-        }
-
-        // run engine
-        int64 schedTime;
-        int64 nextTime = oscTime + oscInc;
-        // DEBUG
-        /*
-        if (mScheduler.Ready(nextTime)) {
-            double diff = (mScheduler.NextTime() - mOSCbuftime)*kOSCtoSecs;
-            scprintf("rdy %.6f %.6f %.6f %.6f \n", (mScheduler.NextTime()-gStartupOSCTime) * kOSCtoSecs, (mOSCbuftime-gStartupOSCTime)*kOSCtoSecs, diff, (nextTime-gStartupOSCTime)*kOSCtoSecs);
-        }
-        */
-        while ((schedTime = mScheduler.NextTime()) <= nextTime) {
-            float diffTime = (float)(schedTime - oscTime) * oscToSamples + 0.5;
-            float diffTimeFloor = floor(diffTime);
-            world->mSampleOffset = (int)diffTimeFloor;
-            world->mSubsampleOffset = diffTime - diffTimeFloor;
-
-            if (world->mSampleOffset < 0) world->mSampleOffset = 0;
-            else if (world->mSampleOffset >= world->mBufLength) world->mSampleOffset = world->mBufLength-1;
-
-            SC_ScheduledEvent event = mScheduler.Remove();
-            event.Perform();
-        }
-        world->mSampleOffset = 0;
-        world->mSubsampleOffset = 0.f;
-
-	//scprintf("SC_AndroidJNIAudioDriver::genaudio() - World_Run()...\n");
-
-        World_Run(world);
-
-	//scprintf("SC_AndroidJNIAudioDriver::genaudio() - ...World_Run()\n");
-
-        // copy touched outputs
-        tch = outTouched;
-        for (int k = 0; k < minOutputs; ++k) {
-        	
-        	// OK, so the source is noninterleaved floats, target is an interleaved array of ints
-            if (*tch++ == bufCounter) {
-                float *src = outBuses + k * bufFrames;
-                for (int n = 0; n < bufFrames; ++n) arri[n * minOutputs + k] = (short)((*src++) * 32767.f);
-            } else {
-                for (int n = 0; n < bufFrames; ++n) arri[n * minOutputs + k] = 0;
-            }
-        }
-
-        // update buffer time
-        oscTime = mOSCbuftime = nextTime;
-    }
-
-	mAudioSync.Signal();
-	
-}
-
-int64 gOSCoffset = 0;
-
-static inline int64 GetCurrentOSCTime()
-{
-	struct timeval tv;
-	uint64 s, f;
-	gettimeofday(&tv, 0);
-	s = (uint64)tv.tv_sec + (uint64)kSECONDS_FROM_1900_to_1970;
-	f = (uint64)((double)tv.tv_usec * kMicrosToOSCunits);
-
-	return (s << 32) + f;
-}
-
-int64 oscTimeNow()
-{
-	return GetCurrentOSCTime();
-}
-
-int32 server_timeseed()
-{
-	int64 time = GetCurrentOSCTime();
-	return Hash((int32)(time >> 32) + Hash((int32)time));
-}
-
-void initializeScheduler()
-{
-	gOSCoffset = GetCurrentOSCTime();
-}
-
-#endif  // SC_AUDIO_API == SC_AUDIO_API_ANDROIDJNI
-

@@ -23,13 +23,17 @@
 
 #include <sys/types.h>
 #ifndef NO_LIBSNDFILE
-	#ifdef SC_WIN32
+	#ifdef _WIN32
 		#include <sndfile-win.h>
 	#else
 		#include <sndfile.h>
 	#endif
 #else
 	#include "SC_sndfile_stub.h"
+#endif
+
+#ifdef SUPERNOVA
+#include "nova-tt/rw_spinlock.hpp"
 #endif
 
 struct SndBuf
@@ -45,6 +49,9 @@ struct SndBuf
 	int coord;	// used by fft ugens
 	SNDFILE *sndfile; // used by disk i/o
 	// SF_INFO fileinfo; // used by disk i/o
+#ifdef SUPERNOVA
+	mutable nova::rw_spinlock lock;
+#endif
 };
 typedef struct SndBuf SndBuf;
 
@@ -56,7 +63,6 @@ struct SndBufUpdates
 typedef struct SndBufUpdates SndBufUpdates;
 
 enum { coord_None, coord_Complex, coord_Polar };
-
 
 inline float PhaseFrac(uint32 inPhase)
 {

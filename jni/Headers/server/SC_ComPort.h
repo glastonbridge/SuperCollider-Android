@@ -27,7 +27,7 @@
 #endif
 
 #include <sys/types.h>
-#ifdef SC_WIN32
+#ifdef _WIN32
 # include <winsock2.h>
 #else
 # include <sys/socket.h>
@@ -143,7 +143,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(SC_DARWIN) || defined(SC_IPHONE)
+#ifdef __APPLE__
 
 #include <CoreFoundation/CFMessagePort.h>
 
@@ -165,7 +165,7 @@ private:
     static CFDataRef messagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef data, void *info);
 };
 
-#endif // SC_DARWIN
+#endif // __APPLE__
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 */
 
-#ifndef SC_WIN32
+#ifndef _WIN32
 # include "SC_ComPort.h"
 #else
 # include "../../headers/server/SC_ComPort.h"
@@ -32,30 +32,26 @@
 #include <ctype.h>
 #include <stdexcept>
 #include <stdarg.h>
-#ifdef SC_WIN32
-# include <winsock2.h>
-typedef int socklen_t;
-# define bzero( ptr, count ) memset( ptr, 0, count )
+
+#ifdef _WIN32
+	# include <winsock2.h>
+	typedef int socklen_t;
+	# define bzero( ptr, count ) memset( ptr, 0, count )
 #else
-#include <netinet/tcp.h>
+	#include <netinet/tcp.h>
 #endif
 
-#ifdef SC_LINUX
-# include <errno.h>
-# include <unistd.h>
+#if defined(__linux__) || defined(__FreeBSD__)
+	#include <errno.h>
+	#include <unistd.h>
 #endif
 
-#ifdef SC_FREEBSD
-# include <errno.h>
-# include <unistd.h>
-#endif
-
-#ifdef SC_IPHONE
-# include <errno.h>
+#if defined(SC_IPHONE) || defined(__APPLE__)
+	#include <errno.h>
 #endif
 
 #ifdef USE_RENDEZVOUS
-#include "Rendezvous.h"
+	#include "Rendezvous.h"
 #endif
 
 int recvall(int socket, void *msg, size_t len);
@@ -231,7 +227,7 @@ SC_ComPort::SC_ComPort(struct World *inWorld, int inPortNum)
 
 SC_ComPort::~SC_ComPort()
 {
-#ifdef SC_WIN32
+#ifdef _WIN32
     if (mSocket != -1) closesocket(mSocket);
 #else
     if (mSocket != -1) close(mSocket);
@@ -253,7 +249,7 @@ void set_real_time_priority(pthread_t thread)
 	struct sched_param param;
 
 	pthread_getschedparam (thread, &policy, &param);
-#ifdef SC_LINUX
+#ifdef __linux__
 	policy = SCHED_FIFO;
 	const char* env = getenv("SC_SCHED_PRIO");
 	// jack uses a priority of 10 in realtime mode, so this is a good default
@@ -302,19 +298,12 @@ SC_UdpInPort::SC_UdpInPort(struct World *inWorld, int inPortNum)
 	: SC_ComPort(inWorld, inPortNum)
 {
 	if ((mSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-
-		char errbuff[50];
-#ifdef SC_LINUX
-		sprintf(errbuff,"failed to create udp socket, error %i\n",errno);
-#else
-		sprintf(errbuff,"failed to create udp socket\n");
-#endif
-		throw std::runtime_error(errbuff);
+		throw std::runtime_error("failed to create udp socket\n");
 	}
 
 	{
 		int bufsize = 65536;
-#ifdef SC_WIN32
+#ifdef _WIN32
 		setsockopt(mSocket, SOL_SOCKET, SO_SNDBUF, (char*)&bufsize, sizeof(bufsize));
 #else
 		setsockopt(mSocket, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(bufsize));
@@ -326,17 +315,10 @@ SC_UdpInPort::SC_UdpInPort(struct World *inWorld, int inPortNum)
 	bzero((char *)&mBindSockAddr, sizeof(mBindSockAddr));
 	mBindSockAddr.sin_family = AF_INET;
 	mBindSockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	mBindSockAddr.sin_port = 	htons(mPortNum);
-	scprintf("Listening on port %i\n",mPortNum);
+	mBindSockAddr.sin_port = htons(mPortNum);
 
 	if (bind(mSocket, (struct sockaddr *)&mBindSockAddr, sizeof(mBindSockAddr)) < 0) {
-		char errbuff[50];
-#ifdef SC_LINUX
-		sprintf(errbuff,"unable to bind udp socket, error %i\n",errno);
-#else
-		sprintf(errbuff,"unable to bind udp socket\n");
-#endif
-		throw std::runtime_error(errbuff);
+		throw std::runtime_error("unable to bind udp socket\n");
 	}
 
 	Start();
@@ -353,7 +335,7 @@ SC_UdpInPort::SC_UdpInPort(struct World *inWorld, int inPortNum)
 
 SC_UdpInPort::~SC_UdpInPort()
 {
-#ifdef SC_WIN32
+#ifdef _WIN32
     if (mSocket != -1) closesocket(mSocket);
 #else
 	if (mSocket != -1) close(mSocket);
@@ -366,7 +348,7 @@ void DumpReplyAddress(ReplyAddress *inReplyAddress)
 {
 	scprintf("mSockAddrLen %d\n", inReplyAddress->mSockAddrLen);
 	scprintf("mSocket %d\n", inReplyAddress->mSocket);
-#ifdef SC_DARWIN
+#ifdef __APPLE__
 	scprintf("mSockAddr.sin_len %d\n", inReplyAddress->mSockAddr.sin_len);
 #endif
 	scprintf("mSockAddr.sin_family %d\n", inReplyAddress->mSockAddr.sin_family);
@@ -398,7 +380,7 @@ bool operator==(const ReplyAddress& a, const ReplyAddress& b)
 	return a.mSockAddr.sin_addr.s_addr == b.mSockAddr.sin_addr.s_addr
 		&& a.mSockAddr.sin_family == b.mSockAddr.sin_family
 		&& a.mSockAddr.sin_port == b.mSockAddr.sin_port
-#ifdef SC_DARWIN
+#ifdef __APPLE__
 		&& a.mSockAddr.sin_len == b.mSockAddr.sin_len
 #endif
 		&& a.mSocket == b.mSocket;
@@ -426,7 +408,7 @@ void* SC_UdpInPort::Run()
 		}
 
 		packet->mReplyAddr.mSockAddrLen = sizeof(sockaddr_in);
-#ifdef SC_WIN32
+#ifdef _WIN32
 		int size = recvfrom(mSocket, (char *)mReadBuf, kMaxUDPSize , 0,
 #else
 		int size = recvfrom(mSocket, mReadBuf, kMaxUDPSize , 0,
@@ -534,7 +516,7 @@ SC_TcpConnectionPort::SC_TcpConnectionPort(struct World *inWorld, SC_TcpInPort *
 {
     mSocket = inSocket;
 
-#ifdef SC_WIN32
+#ifdef _WIN32
 	const char on = 1;
 	setsockopt( mSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&on, sizeof(on));
 #else
@@ -547,7 +529,7 @@ SC_TcpConnectionPort::SC_TcpConnectionPort(struct World *inWorld, SC_TcpInPort *
 
 SC_TcpConnectionPort::~SC_TcpConnectionPort()
 {
-#ifdef SC_WIN32
+#ifdef _WIN32
 	closesocket(mSocket);
 #else
 	close(mSocket);
@@ -595,7 +577,7 @@ void* SC_TcpConnectionPort::Run()
 		if (size < 0) goto leave;
 
 		validated = strcmp(buf, mWorld->hw->mPassword) == 0;
-#ifdef SC_WIN32
+#ifdef _WIN32
 		if (!validated) Sleep(i+1);	// thwart cracking.
 #else
 		if (!validated) sleep(i+1);	// thwart cracking.
@@ -644,7 +626,7 @@ int recvall(int socket, void *msg, size_t len)
 	int total = 0;
 	while (total < (int)len)
 	{
-#ifdef SC_WIN32
+#ifdef _WIN32
 		int numbytes = recv(socket, (char*)msg, len - total, 0);
 #else
 		int numbytes = recv(socket, msg, len - total, 0);
@@ -661,7 +643,7 @@ int sendallto(int socket, const void *msg, size_t len, struct sockaddr *toaddr, 
 	int total = 0;
 	while (total < (int)len)
 	{
-#ifdef SC_WIN32
+#ifdef _WIN32
 		int numbytes = sendto(socket, (char*)msg, len - total, 0, toaddr, addrlen);
 #else
 		int numbytes = sendto(socket, msg, len - total, 0, toaddr, addrlen);
@@ -681,7 +663,7 @@ int sendall(int socket, const void *msg, size_t len)
 	int total = 0;
 	while (total < (int)len)
 	{
-#ifdef SC_WIN32
+#ifdef _WIN32
 		int numbytes = send(socket, (const char*)msg, len - total, 0);
 #else
 		int numbytes = send(socket, msg, len - total, 0);
@@ -695,7 +677,7 @@ int sendall(int socket, const void *msg, size_t len)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(SC_DARWIN) || defined(SC_IPHONE)
+#if defined(__APPLE__) || defined(SC_IPHONE)
 
 SC_MachMessagePort::SC_MachMessagePort(struct World *inWorld, CFStringRef serverPortName, CFStringRef replyPortName)
     :   SC_CmdPort(inWorld), mServerPort(NULL), mReplyPort(NULL)

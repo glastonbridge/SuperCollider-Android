@@ -1,5 +1,5 @@
-3.4
+10271
 
-Code here is currently adapted from the 3.4 release of SuperCollider source:
-https://supercollider.svn.sourceforge.net/svnroot/supercollider/tags/Version-3.4/
+Code here is currently adapted from the trunk of the SuperCollider source, using the SVN revision given above.
+https://supercollider.svn.sourceforge.net/svnroot/supercollider/trunk
 
