@@ -1,0 +1,11 @@
+# ignore eclipse local config
+.settings/**/*
+# ignore paths to be generated during build
+bin/**/*
+gen/**/*
+libs/**/*
+obj/**/*
+tests/bin/**/*
+tests/gen/**/*
+default.properties
+
