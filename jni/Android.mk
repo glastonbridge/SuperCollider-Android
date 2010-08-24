@@ -132,6 +132,29 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := ReverbUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := ML_UGens
+LOCAL_SRC_FILES := \
+    $(PLUGINS_DIR)/BeatTrack.cpp \
+    $(PLUGINS_DIR)/BeatTrack2.cpp \
+    $(PLUGINS_DIR)/KeyTrack.cpp \
+    $(PLUGINS_DIR)/Loudness.cpp \
+    $(PLUGINS_DIR)/MFCC.cpp \
+    $(PLUGINS_DIR)/ML.cpp \
+    $(PLUGINS_DIR)/ML_SpecStats.cpp \
+    $(PLUGINS_DIR)/Onsets.cpp \
+    $(PLUGINS_DIR)/onsetsds.c \
+    Source/plugins/SCComplex.cpp
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/libsndfile
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
+LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Source/plugins
+LOCAL_CFLAGS    += -D__linux__
+LOCAL_CFLAGS    += -DSC_ANDROID
+LOCAL_CFLAGS    += -DSC_FFT_GREEN=1
+include $(BUILD_SHARED_LIBRARY)
+
 #############################################################
 # Now some ugens from the "sc3-plugins" extensions collection
 
