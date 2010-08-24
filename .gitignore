@@ -8,4 +8,6 @@ obj/**/*
 tests/bin/**/*
 tests/gen/**/*
 default.properties
+# ignore mac cruft
+.DS_Store
 
