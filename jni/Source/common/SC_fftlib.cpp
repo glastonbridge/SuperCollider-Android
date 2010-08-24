@@ -29,7 +29,7 @@ An interface to abstract over different FFT libraries, for SuperCollider 3.
 #include <cstring>
 
 // We include vDSP even if not using for FFT, since we want to use some vectorised add/mul tricks
-#if SC_DARWIN
+#ifdef __APPLE__
 	#include "vecLib/vDSP.h"
 #endif
 
@@ -41,10 +41,10 @@ static float *fftWindow[2][SC_FFT_LOG2_ABSOLUTE_MAXSIZE_PLUS1];
 #endif
 
 #if SC_FFT_GREEN
-       extern "C" {
-               #include "fftlib.h"
-               static float *cosTable[SC_FFT_LOG2_ABSOLUTE_MAXSIZE_PLUS1];
-       }
+	extern "C" {
+		#include "fftlib.h"
+		static float *cosTable[SC_FFT_LOG2_ABSOLUTE_MAXSIZE_PLUS1];
+	}
 #endif
 
 #define pi 3.1415926535898f
@@ -57,15 +57,15 @@ static float *fftWindow[2][SC_FFT_LOG2_ABSOLUTE_MAXSIZE_PLUS1];
 static float* create_cosTable(int log2n);
 static float* create_cosTable(int log2n)
 {
-       int size = 1 << log2n;
-       int size2 = size / 4 + 1;
-       float *win = (float*)malloc(size2 * sizeof(float));
-       double winc = twopi / size;
-       for (int i=0; i<size2; ++i) {
-               double w = i * winc;
-               win[i] = cos(w);
-       }
-       return win;
+	int size = 1 << log2n;
+	int size2 = size / 4 + 1;
+	float *win = (float*)malloc(size2 * sizeof(float));
+	double winc = twopi / size;
+	for (int i=0; i<size2; ++i) {
+		double w = i * winc;
+		win[i] = cos(w);
+	}
+	return win;
 }
 #endif
 
@@ -108,7 +108,6 @@ void scfft_global_init(){
 			fftWindow[wintype][i] = scfft_create_fftwindow(wintype, i);
 		}
 	}
-    fftWindow[wintype][i] = scfft_create_fftwindow(wintype, i);
 	#if SC_FFT_GREEN
 		for (i=0; i< SC_FFT_LOG2_ABSOLUTE_MAXSIZE_PLUS1; ++i) {
 			cosTable[i] = 0;
@@ -117,11 +116,6 @@ void scfft_global_init(){
 			cosTable[i] = create_cosTable(i);
 		}
 		printf("SC FFT global init: cosTable initialised.\n");
-	#elif SC_FFT_VDSP
-// vDSP inits its twiddle factors
-	for (i= SC_FFT_LOG2_MINSIZE; i < SC_FFT_LOG2_MAXSIZE+1; ++i) {
-		fftSetup[i] = vDSP_create_fftsetup (i, FFT_RADIX2);
-
 	#elif SC_FFT_VDSP
 		// vDSP inits its twiddle factors
 		for (i= SC_FFT_LOG2_MINSIZE; i < SC_FFT_LOG2_MAXSIZE+1; ++i) {
@@ -216,11 +210,9 @@ void scfft_ensurewindow(unsigned short log2_fullsize, unsigned short log2_winsiz
  	#if SC_FFT_VDSP
 		if(fftSetup[log2_fullsize] == 0)
 			fftSetup[log2_fullsize] = vDSP_create_fftsetup (log2_fullsize, FFT_RADIX2);
-
 	#elif SC_FFT_GREEN
 		if(cosTable[log2_fullsize] == 0)
 			cosTable[log2_fullsize] = create_cosTable(log2_fullsize);
-
    	#endif
 }
 
@@ -229,7 +221,7 @@ void scfft_dowindowing(float *data, unsigned int winsize, unsigned int fullsize,
 	if(wintype != WINDOW_RECT){
 		float *win = fftWindow[wintype][log2_winsize];
 		if (!win) return;
-		#if SC_DARWIN
+		#ifdef __APPLE__
 			vDSP_vmul(data, 1, win, 1, data, 1, winsize);
 		#else
 			--win;
@@ -242,7 +234,7 @@ void scfft_dowindowing(float *data, unsigned int winsize, unsigned int fullsize,
 	}
 
 		// scale factor is different for different libs. But the compiler switch here is about using vDSP's fast multiplication method.
-	#if SC_DARWIN
+	#ifdef __APPLE__
 		vDSP_vsmul(data, 1, &scalefac, data, 1, winsize);
 	#else
 		for(int i=0; i<winsize; ++i){
