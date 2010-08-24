@@ -28,12 +28,23 @@ public final class OscMessage implements Parcelable {
 	// Static templates for common operations
 	///////////////////////////////////////////////////////////////////////////
 	
-	public static OscMessage createSynthMessage(String name) {
-		OscMessage synthMessage = new OscMessage();
-		synthMessage.add("/s_new");
-		synthMessage.add(name);
-		synthMessage.add(defaultNodeId);
-		return synthMessage;
+	public static OscMessage createGroupMessage(int nodeId, int addAction, int target) {
+		OscMessage theMessage = new OscMessage();
+		theMessage.add("/g_new");
+		theMessage.add(nodeId);
+		theMessage.add(addAction);
+		theMessage.add(target);
+		return theMessage;
+	}
+
+	public static OscMessage createSynthMessage(String name, int nodeId, int addAction, int target) {
+		OscMessage theMessage = new OscMessage();
+		theMessage.add("/s_new");
+		theMessage.add(name);
+		theMessage.add(nodeId);
+		theMessage.add(addAction);
+		theMessage.add(target);
+		return theMessage;
 	}
 	
 	// TODO: This message seems to be getting parsed by doOsc, but it
@@ -90,14 +101,14 @@ public final class OscMessage implements Parcelable {
 	///////////////////////////////////////////////////////////////////////////
 	
 	public static final Parcelable.Creator<OscMessage> CREATOR = new Parcelable.Creator<OscMessage>() {
-		@Override
+		//@Override
 		public OscMessage createFromParcel(Parcel source) {
 			OscMessage retval = new OscMessage();
 			source.readList(retval.message, null);
 			return retval;
 		}
 
-		@Override
+		//@Override
 		public OscMessage[] newArray(int size) {
 			OscMessage[] retval = new OscMessage[size];
 			for(int i = 0; i<size;++i) retval[i] = new OscMessage();
@@ -105,12 +116,12 @@ public final class OscMessage implements Parcelable {
 		}
 	};
 	
-	@Override
+	//@Override
 	public int describeContents() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
-	@Override
+	//@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeList(message);
 	}

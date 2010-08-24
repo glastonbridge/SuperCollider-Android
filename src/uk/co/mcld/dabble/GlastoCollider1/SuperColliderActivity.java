@@ -46,7 +46,7 @@ public class SuperColliderActivity extends Activity {
 				// Kick off the supercollider playback routine
 				superCollider.start();
 				// Start a synth playing
-				superCollider.sendMessage(OscMessage.createSynthMessage("default"));
+				superCollider.sendMessage(OscMessage.createSynthMessage("default", 1000, 0, 1)); 
 				setUpControls(); // now we have an audio engine, let the activity hook up its controls
 			} catch (RemoteException re) {
 				re.printStackTrace();
@@ -107,7 +107,7 @@ public class SuperColliderActivity extends Activity {
 			}
 		});
 		try {
-			superCollider.openUDP(4040);
+			superCollider.openUDP(57110);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
