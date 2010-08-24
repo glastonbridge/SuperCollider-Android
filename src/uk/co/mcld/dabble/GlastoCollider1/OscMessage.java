@@ -69,6 +69,12 @@ public final class OscMessage implements Parcelable {
 	    return retval;
 	}
 
+	public static OscMessage quitMessage() {
+		OscMessage theMessage = new OscMessage();
+		theMessage.add("/quit");
+		return theMessage;
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	// The actual OscMessage implementation
 	///////////////////////////////////////////////////////////////////////////

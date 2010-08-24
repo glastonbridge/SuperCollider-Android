@@ -126,7 +126,12 @@ public class ScService extends Service {
     }
 	
     public void stop() {
-		audioThread.setRunning(false);
+		try {
+			mBinder.sendMessage(OscMessage.quitMessage());
+		} catch (RemoteException re) {
+			re.printStackTrace();
+		} 
+//		audioThread.setRunning(false);
 		while(!audioThread.isEnded()){
 			try{
 				Thread.sleep(50L);
