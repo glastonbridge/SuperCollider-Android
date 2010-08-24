@@ -110,7 +110,7 @@ extern "C" int scsynth_android_start(JNIEnv* env, jobject obj,
 	options.mNumRGens = 16;
 	options.mLoadGraphDefs = 1;
 	options.mVerbosity = 2; // TODO: reduce this back to zero for non-debug builds once dev't is stable
-	options.mBufLength = hwBufSize / numOutChans;
+	options.mBufLength = 64; // was hwBufSize / numOutChans;
 	
 	
 	// Similar to SCProcess:startup :
