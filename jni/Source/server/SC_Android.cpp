@@ -108,7 +108,7 @@ extern "C" int scsynth_android_start(JNIEnv* env, jobject obj,
 	options.mNumAudioBusChannels = 32;
 	options.mRealTimeMemorySize = 512;
 	options.mNumRGens = 16;
-	options.mLoadGraphDefs = 1; // TODO: decide whether to load from folders or directly
+	options.mLoadGraphDefs = 1;
 	options.mVerbosity = 2; // TODO: reduce this back to zero for non-debug builds once dev't is stable
 	options.mBufLength = hwBufSize / numOutChans;
 	
