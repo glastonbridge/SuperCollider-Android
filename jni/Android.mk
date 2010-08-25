@@ -127,6 +127,10 @@ LOCAL_MODULE := DelayUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := DemandUGens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := GendynUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
