@@ -17,6 +17,8 @@ LOCAL_CFLAGS    += -DSC_PLUGIN_EXT=\".so\"
 # TODO why doesn't the ndk define __linux__? 
 LOCAL_CFLAGS    += -D__linux__
 LOCAL_CFLAGS    += -DSC_ANDROID
+# This disables a lot of log posting from the audio thread, so improves performance. Comment it out if need debug info.
+LOCAL_CFLAGS    += -DNDEBUG
 # TODO there may be a good memory alignment choice for arm: 1 generally ok, maybe 16 when neon.
 LOCAL_CFLAGS    += -DSC_MEMORY_ALIGNMENT=1
 LOCAL_SRC_FILES := \

@@ -34,14 +34,18 @@ static const char * MY_JAVA_CLASS = "uk/co/mcld/dabble/GlastoCollider1/SCAudio";
 
 void scvprintf_android(const char *fmt, va_list ap){
 	// note, currently no way to choose log level of scsynth messages so all set as 'debug'
-	//  #ifndef NDEBUG
-	__android_log_vprint(ANDROID_LOG_DEBUG, "libscsynth", fmt, ap);
-	//  #endif
+	#ifndef NDEBUG
+		__android_log_vprint(ANDROID_LOG_DEBUG, "libscsynth", fmt, ap);
+	#endif
 }
 
 extern "C" void scsynth_android_initlogging() {
 	SetPrintFunc((PrintFunc) *scvprintf_android);
-	scprintf("SCSYNTH->ANDROID logging active\n");
+	#ifndef NDEBUG
+		scprintf("SCSYNTH->ANDROID logging active (no debug)\n");
+	#else
+		scprintf("SCSYNTH->ANDROID logging active (debug)\n");
+	#endif
 }
 
 void* scThreadFunc(void* arg)
@@ -171,7 +175,9 @@ extern "C" void scsynth_android_makeSynth(JNIEnv* env, jobject obj, jstring theN
 void makePacket(JNIEnv* env, jobjectArray oscMessage, small_scpacket& packet,int start=0) {
     int numElements = env->GetArrayLength(oscMessage);
 
-	scprintf("received a message with %i elements\n",numElements);
+#ifndef NDEBUG
+    scprintf("received a message with %i elements\n",numElements);
+#endif
     if (numElements<=0) return; // No message
     int i;
     jobject obj;
@@ -185,12 +191,16 @@ void makePacket(JNIEnv* env, jobjectArray oscMessage, small_scpacket& packet,int
     jmethodID toArrayMethod = env->GetMethodID(oscClass,"toArray","()[Ljava/lang/Object;");
 	obj = env->GetObjectArrayElement(oscMessage,0);
 	if (env->IsInstanceOf(obj,oscClass)) {
+#ifndef NDEBUG
 		scprintf("it's a bundle!\n");
+#endif
 		packet.OpenBundle(0);
 		while (start<numElements) {
 			obj = env->GetObjectArrayElement(oscMessage,start);
 			jobjectArray bundle = (jobjectArray) env->CallObjectMethod(obj,toArrayMethod);
+#ifndef NDEBUG
 			scprintf("making a new packet %i\n",start);
+#endif
 			packet.BeginMsg();
 			makePacket(env, bundle, packet);
 			packet.EndMsg();
@@ -200,7 +210,9 @@ void makePacket(JNIEnv* env, jobjectArray oscMessage, small_scpacket& packet,int
 	} else if (env->IsInstanceOf(obj,stringClass)) {
 		stringPtr = env->GetStringUTFChars((jstring)obj,NULL);
 		packet.adds(stringPtr);
+#ifndef NDEBUG
 		scprintf("cmd %s\n",stringPtr);
+#endif
 		env->ReleaseStringUTFChars((jstring)obj,stringPtr);
 		packet.maketags(numElements);
 		packet.addtag(',');
@@ -215,7 +227,9 @@ void makePacket(JNIEnv* env, jobjectArray oscMessage, small_scpacket& packet,int
 			} else if (env->IsInstanceOf(obj,stringClass)) {
 				packet.addtag('s');
 				stringPtr = env->GetStringUTFChars((jstring)obj,NULL);
+#ifndef NDEBUG
 				scprintf("arg %s\n",stringPtr);
+#endif
 				packet.adds(stringPtr);
 				env->ReleaseStringUTFChars((jstring)obj,stringPtr);
 			}
