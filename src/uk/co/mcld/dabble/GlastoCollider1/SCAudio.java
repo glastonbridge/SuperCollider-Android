@@ -14,9 +14,8 @@ import android.util.Log;
  * @author Dan Stowell
  *
  */
-class SCAudio extends Thread {
+public class SCAudio extends Thread {
 	protected static final String TAG="SuperCollider-Android";
-	ScService theApp;
 	
 	/**
 	 * SUPERCOLLIDER AUDIO OUTPUT SETTINGS
@@ -54,8 +53,7 @@ class SCAudio extends Thread {
 	public static native void scsynth_android_doOsc(Object[] message);
 	public static native void scsynth_android_quit();
     
-	public SCAudio(ScService theApp){
-		this.theApp = theApp;
+	public SCAudio(){
 		Log.i(TAG, "SCAudio - about to invoke native scsynth_android_initlogging()");
 		scsynth_android_initlogging();
 
