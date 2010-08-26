@@ -11,6 +11,8 @@ import android.util.Log;
  * Responsible for the event loop which drives SuperCollider
  * under the hood of the NDK.
  * 
+ * If linking against SuperCollider as a library, use this class
+ * 
  * @author Dan Stowell
  *
  */
@@ -170,7 +172,29 @@ public class SCAudio extends Thread {
 		audioRecord.release();
 		ended = true;
 	}
+	
+	/**
+	 * Allows non-Android OSC agents to connect to SuperCollider using a
+	 * more traditional UDP port.
+	 * 
+	 * @param port The port to listen on
+	 */
 	public void openUDP(int port) {
 		scsynth_android_open_udp(port);
+	}
+	
+	public interface Callback {
+		public void receiveMessage(OscMessage message) ;
+	}
+
+	@SuppressWarnings("unused") // used by JNI
+	private static Callback oscCallback;
+	/**
+	 * Register a callback to receive messages from scsynth
+	 * 
+	 * @TODO: provide this functionality across AIDL
+	 */
+	public void setCallback(Callback c) {
+		oscCallback = c;
 	}
 }
