@@ -31,7 +31,7 @@ public class SCAudio extends Thread {
 	// bufSizeFrames (size of audio buffer passed in from android) 
 	//  must be a multiple of 64 since scsynth's internal block length is unchanged from its default of 64.
 	// 64*16 was OK for 11kHz.
-	final int bufSizeFrames = 64*32;
+	final int bufSizeFrames = 64*8;
 	final int shortsPerSample = 1; // this is tied to what the NDK code does to pass audio to scsynth, can't change easily.
 	final int bufSizeShorts = bufSizeFrames * numOutChans * shortsPerSample; 
 
@@ -102,15 +102,18 @@ public class SCAudio extends Thread {
 		int channelConfiguration = numOutChans==2?
 					AudioFormat.CHANNEL_CONFIGURATION_STEREO
 					:AudioFormat.CHANNEL_CONFIGURATION_MONO;
-		int minSize = Math.max(AudioTrack.getMinBufferSize(
+		int minSize = AudioTrack.getMinBufferSize(
 				sampleRateInHz, 
 				channelConfiguration, 
-				AudioFormat.ENCODING_PCM_16BIT),
-		      AudioRecord.getMinBufferSize(
-				sampleRateInHz, 
-				channelConfiguration, 
-				AudioFormat.ENCODING_PCM_16BIT)
-		      );
+				AudioFormat.ENCODING_PCM_16BIT);
+		if(numInChans != 0){
+			minSize = Math.max(minSize,
+			      AudioRecord.getMinBufferSize(
+					sampleRateInHz, 
+					channelConfiguration, 
+					AudioFormat.ENCODING_PCM_16BIT)
+			      );
+		}
 		
 		setPriority(Thread.MAX_PRIORITY);
 		android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
