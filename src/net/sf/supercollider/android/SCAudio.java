@@ -124,18 +124,20 @@ public class SCAudio extends Thread {
 			Log.e(TAG, "failed to create AudioTrack object: " + e.getMessage());
 			e.printStackTrace();
 		}
-		// instantiate AudioRecord
-		try{
-			audioRecord = new AudioRecord(
-					MediaRecorder.AudioSource.MIC, 
-					sampleRateInHz, 
-					channelConfiguration, 
-					AudioFormat.ENCODING_PCM_16BIT, 
-					minSize);
-			gotRecord = (audioRecord.getState()==AudioRecord.STATE_INITIALIZED);
-		}catch(IllegalArgumentException e){
-			Log.e(TAG, "failed to create AudioRecord object: " + e.getMessage());
-			e.printStackTrace();
+		if(numInChans != 0){
+			// instantiate AudioRecord
+			try{
+				audioRecord = new AudioRecord(
+						MediaRecorder.AudioSource.MIC, 
+						sampleRateInHz, 
+						channelConfiguration, 
+						AudioFormat.ENCODING_PCM_16BIT, 
+						minSize);
+				gotRecord = (audioRecord.getState()==AudioRecord.STATE_INITIALIZED);
+			}catch(IllegalArgumentException e){
+				Log.e(TAG, "failed to create AudioRecord object: " + e.getMessage());
+				e.printStackTrace();
+			}
 		}
 
 		audioTrack.play(); // this must be done BEFORE we write data to it
@@ -146,7 +148,9 @@ public class SCAudio extends Thread {
 			while(running){
 				// let the NDK make the sound!
 				if(audioRecord.read(audioBuf, 0, bufSizeShorts) != bufSizeShorts){
-					Log.w(TAG, "audioRecord.read didn't read a complete buffer-full");
+					//Log deactivated for now at least since we already get 
+					//             W/AudioFlinger( 1353): RecordThread: buffer overflow
+					//Log.w(TAG, "audioRecord.read didn't read a complete buffer-full");
 				}
 				ndkReturnVal = scsynth_android_genaudio(audioBuf);
 				if(ndkReturnVal!=0) {
@@ -171,8 +175,10 @@ public class SCAudio extends Thread {
 		// TODO: tell scsynth to stop, then let *it* call back to stop the audio running
 		audioTrack.stop();
 		audioTrack.release();
-		audioRecord.stop();
-		audioRecord.release();
+		if(gotRecord){
+			audioRecord.stop();
+			audioRecord.release();
+		}
 		ended = true;
 	}
 	
