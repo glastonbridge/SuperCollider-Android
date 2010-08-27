@@ -33,8 +33,8 @@
 
 #include <queue>
 
-static const char * MY_JAVA_CLASS = "uk/co/mcld/dabble/GlastoCollider1/SCAudio"; //TODO sth more generic
-static const char * OSC_MESSAGE_CLASS = "uk/co/mcld/dabble/GlastoCollider1/OscMessage";
+static const char * MY_JAVA_CLASS = "net/sf/supercollider/android/SCAudio";
+static const char * OSC_MESSAGE_CLASS = "net/sf/supercollider/android/OscMessage";
 
 // For use when passing messages back from scsynth
 static std::queue<std::string> scsynthMessages;
@@ -387,7 +387,7 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 		{ "scsynth_android_makeSynth"  , "(Ljava/lang/String;)V",   (void *) &scsynth_android_makeSynth   },
 		{ "scsynth_android_doOsc"      , "([Ljava/lang/Object;)V", (void *) &scsynth_android_doOsc },
 		{ "scsynth_android_hasMessages", "()Z", (void *) &scsynth_android_hasMessages },
-		{ "scsynth_android_getMessage" , "()Luk/co/mcld/dabble/GlastoCollider1/OscMessage;", (void *) &scsynth_android_getMessage },
+		{ "scsynth_android_getMessage" , "()Lnet/sf/supercollider/android/OscMessage;", (void *) &scsynth_android_getMessage },
 		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },
 	};
 	env->RegisterNatives(cls, methods, sizeof(methods)/sizeof(methods[0]) );

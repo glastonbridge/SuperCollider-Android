@@ -1,4 +1,4 @@
-package uk.co.mcld.dabble.GlastoCollider1;
+package net.sf.supercollider.android;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;

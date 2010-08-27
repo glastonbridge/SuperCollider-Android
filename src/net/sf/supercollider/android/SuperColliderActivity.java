@@ -1,5 +1,6 @@
-package uk.co.mcld.dabble.GlastoCollider1;
+package net.sf.supercollider.android;
 
+import net.sf.supercollider.android.ISuperCollider;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;

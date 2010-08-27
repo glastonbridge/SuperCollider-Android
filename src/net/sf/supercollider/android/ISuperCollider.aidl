@@ -1,5 +1,5 @@
-package uk.co.mcld.dabble.GlastoCollider1;
-import uk.co.mcld.dabble.GlastoCollider1.OscMessage;
+package net.sf.supercollider.android;
+import net.sf.supercollider.android.OscMessage;
 
 /** Provide IPC to the SuperCollider service.
  *
@@ -12,8 +12,7 @@ interface ISuperCollider {
 	// Terminate the run loop, if running.
 	void stop();
 	// Send an OSC message
-	// TODO: return value
-	void sendMessage(in uk.co.mcld.dabble.GlastoCollider1.OscMessage oscMessage);
+	void sendMessage(in net.sf.supercollider.android.OscMessage oscMessage);
 	// Open a UDP listener for remote connections.
 	void openUDP(in int port);
 }

@@ -3,7 +3,7 @@
  * @stolenshamelesslyby Alex Shaw alex@glastonbridge.com for SuperCollider-Android
  */
 
-package uk.co.mcld.dabble.GlastoCollider1;
+package net.sf.supercollider.android;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -26,7 +26,7 @@ public class ScService extends Service {
 
 	public static final String scDirStr = "/sdcard/supercollider";
 	public static final String dataDirStr = scDirStr+"/synthdefs";
-	public static final String dllDirStr = "/data/data/uk.co.mcld.dabble.GlastoCollider1/lib"; // TODO: not very extensible, hard coded, generally sucks
+	public static final String dllDirStr = "/data/data/net.sf.supercollider.android/lib"; // TODO: not very extensible, hard coded, generally sucks
 
 	/**
 	 * Our AIDL implementation to allow a bound Activity to talk to us

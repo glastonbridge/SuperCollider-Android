@@ -1,4 +1,4 @@
-package uk.co.mcld.dabble.GlastoCollider1;
+package net.sf.supercollider.android;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -6,17 +6,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import uk.co.mcld.dabble.GlastoCollider1.OscMessage;
-import uk.co.mcld.dabble.GlastoCollider1.SCAudio;
-import uk.co.mcld.dabble.GlastoCollider1.ScService;
+import net.sf.supercollider.android.OscMessage;
+import net.sf.supercollider.android.SCAudio;
+import net.sf.supercollider.android.ScService;
+
 import android.media.AudioFormat;
 import android.media.AudioManager;
-import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.test.AndroidTestCase;
+import android.util.Log;
+
+/**
+ * Essentially these are smoketests, there is no validation step for a lot
+ * of the code here, barring "are we still alive?"  Look at the tests in the
+ * suite, run them, listen to the audio.  You should hear a series of beeps
+ * and squeaks corresponding to the tests, if they sound loosely melodic and
+ * there are no crashes, then good.
+ * 
+ * You can also use this code as an example when instantiating your own synthdefs
+ * 
+ * @TODO: make validation automatic
+ * 
+ * @author alex
+ *
+ */
 
 public class NativeAudioTests extends AndroidTestCase {
 
+	protected static final String TAG = "NativeAudioTests";
 	final int numInChans = 1; 
 	final int numOutChans = 1; 
 	final int shortsPerSample = 1; 
@@ -24,9 +41,9 @@ public class NativeAudioTests extends AndroidTestCase {
 	final int bufSizeShorts = bufSizeFrames * numOutChans * shortsPerSample; 
 	int sampleRateInHz = 11025;
 	short[] audioBuf = new short[bufSizeShorts];
-
+	
 	public void testSynthDefs() {
-		assert(initFiles());
+		initFiles();
     	System.loadLibrary("sndfile");
     	System.loadLibrary("scsynth"); 
     	SCAudio.scsynth_android_initlogging();
@@ -34,34 +51,49 @@ public class NativeAudioTests extends AndroidTestCase {
 				ScService.dllDirStr, ScService.dataDirStr);
     	assert(true); // SC started, have a biscuit
     	
+    	///////////////////////////////////////////////////////////////////////
     	// Silence is golden
 		assert(0==SCAudio.scsynth_android_genaudio(audioBuf));
 		for(short s : audioBuf) assert(s==0);
-		
-		SCAudio.scsynth_android_doOsc(new Object[] {"s_new", "default", OscMessage.defaultNodeId});
 
 		assert(true);
+
+		int buffersPerSecond = (sampleRateInHz*shortsPerSample)/(bufSizeShorts*numOutChans);
 
 		AudioTrack audioTrack = createAudioOut(); // audible testing
-		
-		int buffersPerSecond = (sampleRateInHz*shortsPerSample)/(bufSizeShorts*numOutChans);
-		for(int i=0; i<buffersPerSecond; ++i) {
-			SCAudio.scsynth_android_genaudio(audioBuf);
-			audioTrack.write(audioBuf, 0, bufSizeShorts);
+		try {
+			
+	    	///////////////////////////////////////////////////////////////////////
+	    	// test default.scsyndef
+			SCAudio.scsynth_android_doOsc(new Object[] {"s_new", "default", OscMessage.defaultNodeId});
+
+			for(int i=0; i<buffersPerSecond; ++i) {
+				SCAudio.scsynth_android_genaudio(audioBuf);
+				audioTrack.write(audioBuf, 0, bufSizeShorts);
+			}
+			
+			assert(true);
+	
+	    	///////////////////////////////////////////////////////////////////////
+	    	// Test buffers
+			SCAudio.scsynth_android_doOsc(new Object[] {"n_free", OscMessage.defaultNodeId});
+			int bufferIndex = 10;
+			SCAudio.scsynth_android_doOsc(new Object[] {"b_allocRead", bufferIndex, "/sdcard/supercollider/sounds/a11wlk01.wav"});
+			SCAudio.scsynth_android_doOsc(new Object[] {"s_new", "tutor", OscMessage.defaultNodeId});
+			
+			for(int i=0; i<buffersPerSecond; ++i) {
+				SCAudio.scsynth_android_genaudio(audioBuf);
+				audioTrack.write(audioBuf, 0, bufSizeShorts);
+			}
+			
+			SCAudio.scsynth_android_doOsc(new Object[] {"n_free", OscMessage.defaultNodeId});
+			//SCAudio.scsynth_android_doOsc(new Object[] {"b_free", bufferIndex});
+			assert(true);
+		} finally {
+		    audioTrack.stop();
 		}
-		
-		assert(true);
-		
-		SCAudio.scsynth_android_doOsc(new Object[] {"n_free", 1000});
-		SCAudio.scsynth_android_doOsc(new Object[] {"b_allocRead", 10, "/sdcard/supercollider/sounds/a11wlk01.wav"});
-		SCAudio.scsynth_android_doOsc(new Object[] {"s_new", "tutor", OscMessage.defaultNodeId});
-		
-		for(int i=0; i<buffersPerSecond; ++i) {
-			SCAudio.scsynth_android_genaudio(audioBuf);
-			audioTrack.write(audioBuf, 0, bufSizeShorts);
-		}
-		
-		audioTrack.stop();
+
+    	if (!SCAudio.hasMessages()) assert(false);
 	}
 	
 	protected AudioTrack createAudioOut() {
@@ -104,11 +136,11 @@ public class NativeAudioTests extends AndroidTestCase {
 			dataDir.mkdirs();
 			pipeFile("default.scsyndef",ScService.dataDirStr);
 			pipeFile("tutor.scsyndef",ScService.dataDirStr);
-			
+			pipeFile("ffttest.scsyndef",ScService.dataDirStr);
 			String soundDirStr = "/sdcard/supercollider/sounds";
 			File soundDir = new File(soundDirStr);
 			soundDir.mkdirs();
-			pipeFile("default.scsyndef",soundDirStr);
+			pipeFile("a11wlk01.wav",soundDirStr);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
