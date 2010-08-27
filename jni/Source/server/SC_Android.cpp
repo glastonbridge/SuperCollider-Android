@@ -25,12 +25,19 @@
 #include <android/log.h>
 #include <jni.h>
 #include "OSCMessages.h"
+#include "sc_msg_iter.h"
 #include "SC_HiddenWorld.h"
 #include "SC_CoreAudio.h"  // for SC_AndroidJNIAudioDriver
 
 #include <dirent.h>  // ONLY for the debug folder scanning
 
+#include <queue>
+
 static const char * MY_JAVA_CLASS = "uk/co/mcld/dabble/GlastoCollider1/SCAudio"; //TODO sth more generic
+static const char * OSC_MESSAGE_CLASS = "uk/co/mcld/dabble/GlastoCollider1/OscMessage";
+
+// For use when passing messages back from scsynth
+static std::queue<std::string> scsynthMessages;
 
 void scvprintf_android(const char *fmt, va_list ap){
 	// note, currently no way to choose log level of scsynth messages so all set as 'debug'
@@ -54,7 +61,106 @@ void* scThreadFunc(void* arg)
     World_WaitForQuit(world);
     return 0;
 }
+
 void null_reply_func(struct ReplyAddress* /*addr*/, char* /*msg*/, int /*size*/);
+
+// For now, add everything to a fifo.  I first thought to do this as a callback,
+// but calling Java from an arbitrary pthread is a no-no
+void androidReplyFunc(struct ReplyAddress* /*addr*/, char* inData, int inSize) {
+    scsynthMessages.push(std::string(inData,inSize));
+}
+
+jobject convertMessageToJava(JNIEnv* myEnv, char* inData, int inSize) {
+
+    jclass oscMessageClass = myEnv->FindClass(OSC_MESSAGE_CLASS);
+
+	if (!oscMessageClass) {
+		scprintf("convertMessageToJava could not find the JAVA OSC representation");
+		return NULL;
+	}
+
+	if (inSize<=0 || !inData) {
+		return NULL;
+	}
+
+	jmethodID oscConstructor = myEnv->GetMethodID(oscMessageClass, "<init>", "()V");
+	if (!oscConstructor) {
+		scprintf("convertMessageToJava could not find a constructor for the JAVA OSC representation");
+		return NULL;
+	}
+
+	jobject oscObject = myEnv->NewObject(oscMessageClass, oscConstructor);
+	jmethodID addInt = myEnv->GetMethodID(oscMessageClass, "add", "(I)Z");
+	jmethodID addStr = myEnv->GetMethodID(oscMessageClass, "add", "(Ljava/lang/String;)Z");
+	jmethodID addFlt = myEnv->GetMethodID(oscMessageClass, "add", "(F)Z");
+	jmethodID addLng = myEnv->GetMethodID(oscMessageClass, "add", "(J)Z");
+
+	// Did I steal this wholesale from dumpOSCmsg?  Yes I did.  -ajs 20100826
+	char * data;
+	int size;
+	if (inData[0]) {
+		char *addr = inData;
+		data = OSCstrskip(inData);
+		size = inSize - (data - inData);
+		jstring jaddr = myEnv->NewStringUTF(addr);
+		myEnv->CallBooleanMethod(oscObject,addStr,jaddr);
+	}
+	else
+	{
+		myEnv->CallBooleanMethod(oscObject,addInt,OSCint(inData));
+		data = inData + 4;
+		size = inSize - 4;
+	}
+
+	sc_msg_iter msg(size, data);
+
+	bool ok(true);
+	while (msg.remain() && ok)
+	{
+		char c = msg.nextTag('i');
+		jstring jstr;
+		switch(c)
+		{
+			case 'i' :
+				myEnv->CallBooleanMethod(oscObject,addInt,msg.geti());
+				break;
+			case 'f' :
+				myEnv->CallBooleanMethod(oscObject,addFlt,msg.getf());
+				break;
+			case 's' :
+				jstr = myEnv->NewStringUTF(msg.gets());
+				myEnv->CallBooleanMethod(oscObject,addStr,jstr);
+				break;
+			default :
+				scprintf("convertMessageToJava unknown/unimplemented tag '%c' 0x%02x", isprint(c)?c:'?', (unsigned char)c & 255);
+				ok = false;
+			break;
+		}
+	}
+	return oscObject;
+}
+
+JNIEXPORT jboolean JNICALL scsynth_android_hasMessages ( JNIEnv* env, jobject obj )
+{
+	return !scsynthMessages.empty();
+}
+
+JNIEXPORT jobject JNICALL scsynth_android_getMessage ( JNIEnv* env, jobject obj )
+{
+	if (!scsynthMessages.empty()) {
+		std::string firstMessage (scsynthMessages.front());
+		scsynthMessages.pop();
+		char* data = new char[firstMessage.length()+1];
+		int length (firstMessage.copy(data,firstMessage.length()));
+		data[length] = 0;
+		jobject oscMessage (convertMessageToJava(env, data, length));
+		delete[] data;
+		return oscMessage;
+	}
+	return NULL;
+}
+
+
 
 static World * world;
 
@@ -187,7 +293,7 @@ void makePacket(JNIEnv* env, jobjectArray oscMessage, small_scpacket& packet,int
     jclass floatClass = env->FindClass("java/lang/Float");
     jmethodID getFloatMethod = env->GetMethodID(floatClass,"floatValue","()F");
     jclass stringClass = env->FindClass("java/lang/String");
-    jclass oscClass = env->FindClass("uk/co/mcld/dabble/GlastoCollider1/OscMessage");
+    jclass oscClass = env->FindClass(OSC_MESSAGE_CLASS);
     jmethodID toArrayMethod = env->GetMethodID(oscClass,"toArray","()[Ljava/lang/Object;");
 	obj = env->GetObjectArrayElement(oscMessage,0);
 	if (env->IsInstanceOf(obj,oscClass)) {
@@ -241,7 +347,7 @@ extern "C" void scsynth_android_doOsc(JNIEnv* env, jobject classobj, jobjectArra
     if (world->mRunning){
         small_scpacket packet;
         makePacket(env,oscMessage,packet);
-        World_SendPacket(world,((packet.size()+4)>>2)*4,  (char*)packet.buf, null_reply_func);
+        World_SendPacket(world,((packet.size()+4)>>2)*4,  (char*)packet.buf, androidReplyFunc);
     }else{
     	scprintf("scsynth_android_makeSynth: not running!\n");
     }
@@ -262,8 +368,6 @@ extern "C" void scsynth_android_quit(JNIEnv* env, jobject obj){
 * how to invoke them. It's not necessary on Android but we'd have to use
 * horrible qualified function names otherwise. */
 extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
-
-	// btw storing JavaVM *vm in a static variable is very common. i don't need it so far yet.
 	JNIEnv* env;
 	if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
 		return -1;
@@ -282,9 +386,10 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 		{ "scsynth_android_genaudio"   , "([S)I", (void *) &scsynth_android_genaudio    },
 		{ "scsynth_android_makeSynth"  , "(Ljava/lang/String;)V",   (void *) &scsynth_android_makeSynth   },
 		{ "scsynth_android_doOsc"      , "([Ljava/lang/Object;)V", (void *) &scsynth_android_doOsc },
+		{ "scsynth_android_hasMessages", "()Z", (void *) &scsynth_android_hasMessages },
+		{ "scsynth_android_getMessage" , "()Luk/co/mcld/dabble/GlastoCollider1/OscMessage;", (void *) &scsynth_android_getMessage },
 		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },
 	};
 	env->RegisterNatives(cls, methods, sizeof(methods)/sizeof(methods[0]) );
-
 	return JNI_VERSION_1_4;
 }

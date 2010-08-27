@@ -53,6 +53,8 @@ public class SCAudio extends Thread {
 	public static native int  scsynth_android_genaudio(short[] someAudioBuf);
 	public static native void scsynth_android_makeSynth(String synthName);
 	public static native void scsynth_android_doOsc(Object[] message);
+	public static native boolean scsynth_android_hasMessages();
+	public static native OscMessage scsynth_android_getMessage();
 	public static native void scsynth_android_quit();
     
 	public SCAudio(){
@@ -183,18 +185,18 @@ public class SCAudio extends Thread {
 		scsynth_android_open_udp(port);
 	}
 	
-	public interface Callback {
-		public void receiveMessage(OscMessage message) ;
-	}
-
-	@SuppressWarnings("unused") // used by JNI
-	private static Callback oscCallback;
 	/**
-	 * Register a callback to receive messages from scsynth
+	 * Have we got any (asynchronous) response messages from scserver?
 	 * 
-	 * @TODO: provide this functionality across AIDL
+	 * @return
 	 */
-	public void setCallback(Callback c) {
-		oscCallback = c;
-	}
+	public static boolean hasMessages() { return scsynth_android_hasMessages(); }
+	
+	/**
+	 * If we have any messages from scserver, get one of them and
+	 * remove it from the internal mailbox.
+	 * 
+	 * @return A message or null if there are none to get
+	 */
+	public static OscMessage getMessage() {return scsynth_android_getMessage(); }
 }
