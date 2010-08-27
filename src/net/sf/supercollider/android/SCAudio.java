@@ -25,15 +25,15 @@ public class SCAudio extends Thread {
 	 * Fairly lo-fi by default, there's still room for optimisation.  A good acceptance
 	 * test is to waggle the notifications bar about while running - does it glitch much?
 	 */
-	final int numInChans = 1; 
-	final int numOutChans = 1; 
-	final int shortsPerSample = 1; 
+	private int numInChans = 1; // can choose in ctor but not afterwards 
+	final int numOutChans = 1;
+	int sampleRateInHz = 22050;
 	// bufSizeFrames (size of audio buffer passed in from android) 
 	//  must be a multiple of 64 since scsynth's internal block length is unchanged from its default of 64.
 	// 64*16 was OK for 11kHz.
 	final int bufSizeFrames = 64*32;
+	final int shortsPerSample = 1; // this is tied to what the NDK code does to pass audio to scsynth, can't change easily.
 	final int bufSizeShorts = bufSizeFrames * numOutChans * shortsPerSample; 
-	int sampleRateInHz = 22050;
 
 	short[] audioBuf = new short[bufSizeShorts];
 	AudioRecord audioRecord; // input
@@ -59,6 +59,10 @@ public class SCAudio extends Thread {
 	public static native void scsynth_android_quit();
     
 	public SCAudio(){
+		this(1);
+	}
+	public SCAudio(int numInChans){
+		this.numInChans = numInChans;
 		Log.i(TAG, "SCAudio - about to invoke native scsynth_android_initlogging()");
 		scsynth_android_initlogging();
 
