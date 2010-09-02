@@ -38,6 +38,7 @@ static const char * OSC_MESSAGE_CLASS = "net/sf/supercollider/android/OscMessage
 
 // For use when passing messages back from scsynth
 static std::queue<std::string> scsynthMessages;
+static const int messageQueueMaxLength = 10;
 
 void scvprintf_android(const char *fmt, va_list ap){
 	// note, currently no way to choose log level of scsynth messages so all set as 'debug'
@@ -68,6 +69,7 @@ void null_reply_func(struct ReplyAddress* /*addr*/, char* /*msg*/, int /*size*/)
 // but calling Java from an arbitrary pthread is a no-no
 void androidReplyFunc(struct ReplyAddress* /*addr*/, char* inData, int inSize) {
     scsynthMessages.push(std::string(inData,inSize));
+    if(scsynthMessages.size()>messageQueueMaxLength) scsynthMessages.pop();
 }
 
 jobject convertMessageToJava(JNIEnv* myEnv, char* inData, int inSize) {

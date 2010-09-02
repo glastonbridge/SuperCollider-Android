@@ -22,7 +22,7 @@ import android.os.Parcelable;
  */
 public final class OscMessage implements Parcelable {
 	
-	public static final int defaultNodeId = 1000; // TODO: What is this?  Taken from OSCMessages.h
+	public static final int defaultNodeId = 1000; 
 
 	///////////////////////////////////////////////////////////////////////////
 	// Static templates for common operations
@@ -68,6 +68,15 @@ public final class OscMessage implements Parcelable {
 	    retval.add(velbundle);
 	    return retval;
 	}
+	
+	public static OscMessage setControl(int node,String control,float value) {
+		OscMessage controlValue = new OscMessage();
+		controlValue.add("n_set");
+		controlValue.add(node);
+		controlValue.add(control);
+		controlValue.add(value);
+		return controlValue;
+	}
 
 	public static OscMessage quitMessage() {
 		OscMessage theMessage = new OscMessage();
@@ -101,6 +110,19 @@ public final class OscMessage implements Parcelable {
 	public boolean add(long ii) {return message.add(ii); }
 	public boolean add(OscMessage m) {return message.add(m);}
 	public Object[] toArray() { return message.toArray(); }
+	
+	/**
+	 * Convenient string representation for debugging
+	 */
+	public String toString() {
+		String stringValue= new String();
+		for (Object elem : message) stringValue += "/"+elem.toString();
+		return stringValue;
+	}
+	
+	public Object get(int location) {
+		return message.get(location);
+	}
 	
 	///////////////////////////////////////////////////////////////////////////
 	// Parcelling code for AIDL 

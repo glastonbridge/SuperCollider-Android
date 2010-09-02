@@ -59,7 +59,7 @@ public class ScService extends Service {
 
     public void start() {
 		if (audioThread == null || !audioThread.isRunning() ) {
-			audioThread = new SCAudio();
+			audioThread = new SCAudio(dllDirStr);
 			audioThread.start();
 		}
 	}
