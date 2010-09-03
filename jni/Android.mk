@@ -135,7 +135,19 @@ LOCAL_MODULE := GendynUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := GrainUGens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := ReverbUGens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := ChaosUGens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := PhysicalModelingUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
