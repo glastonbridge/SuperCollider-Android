@@ -91,6 +91,10 @@ LOCAL_MODULE := NoiseUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := DynNoiseUGens
+include ${LOCAL_PATH}/simple_ugen.mk
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := LFUGens
 include ${LOCAL_PATH}/simple_ugen.mk
 
