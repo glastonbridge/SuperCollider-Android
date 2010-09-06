@@ -42,9 +42,7 @@ static const int messageQueueMaxLength = 10;
 
 void scvprintf_android(const char *fmt, va_list ap){
 	// note, currently no way to choose log level of scsynth messages so all set as 'debug'
-	#ifndef NDEBUG
-		__android_log_vprint(ANDROID_LOG_DEBUG, "libscsynth", fmt, ap);
-	#endif
+	__android_log_vprint(ANDROID_LOG_DEBUG, "libscsynth", fmt, ap);
 }
 
 extern "C" void scsynth_android_initlogging() {
