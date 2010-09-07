@@ -27,7 +27,7 @@ public class SCAudio extends Thread {
 	 */
 	private int numInChans = 1; // can choose in ctor but not afterwards 
 	final int numOutChans = 1;
-	int sampleRateInHz = 22050;
+	public static int sampleRateInHz = 22050;
 	// bufSizeFrames (size of audio buffer passed in from android) 
 	//  must be a multiple of 64 since scsynth's internal block length is unchanged from its default of 64.
 	// 64*16 was OK for 11kHz.
