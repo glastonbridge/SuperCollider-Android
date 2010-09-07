@@ -347,7 +347,7 @@ extern "C" void scsynth_android_doOsc(JNIEnv* env, jobject classobj, jobjectArra
     if (world->mRunning){
         small_scpacket packet;
         makePacket(env,oscMessage,packet);
-        World_SendPacket(world,((packet.size()+4)>>2)*4,  (char*)packet.buf, androidReplyFunc);
+        World_SendPacket(world, packet.size(),  (char*)packet.buf, androidReplyFunc);
     }else{
     	scprintf("scsynth_android_makeSynth: not running!\n");
     }
