@@ -1,7 +1,10 @@
+# always ignore synthdefs, or not?
+assets/*.scsyndef
 # ignore eclipse local config
-.settings/**/*
+.settings/**
+.classpath
 # ignore paths to be generated during build
-bin/**/*
+bin/**
 gen/**/*
 libs/**/*
 obj/**/*
