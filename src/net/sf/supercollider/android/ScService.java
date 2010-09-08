@@ -47,6 +47,10 @@ public class ScService extends Service {
 		public void openUDP(int port) throws RemoteException {
 			ScService.this.audioThread.openUDP(port);
 		}
+		public void sendQuit() throws RemoteException {
+			ScService.this.audioThread.sendQuit();
+		}
+		
 	};
 	
     private int NOTIFICATION_ID = 1;
@@ -127,8 +131,7 @@ public class ScService extends Service {
 	
     public void stop() {
 		try {
-			mBinder.sendMessage(OscMessage.quitMessage());
-			audioThread.running = false; // put the SCAudio.run() loop into quitting phase 
+			mBinder.sendQuit();
 		} catch (RemoteException re) {
 			re.printStackTrace();
 		} 

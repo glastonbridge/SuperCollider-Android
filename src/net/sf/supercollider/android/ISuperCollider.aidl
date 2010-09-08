@@ -15,4 +15,6 @@ interface ISuperCollider {
 	void sendMessage(in net.sf.supercollider.android.OscMessage oscMessage);
 	// Open a UDP listener for remote connections.
 	void openUDP(in int port);
+	// Gracefully quit the SC process and the Android audio loop
+	void sendQuit(); 
 }

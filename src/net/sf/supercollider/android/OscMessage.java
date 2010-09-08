@@ -77,7 +77,11 @@ public final class OscMessage implements Parcelable {
 		controlValue.add(value);
 		return controlValue;
 	}
-
+	
+	/*
+	 * NOTE: it is better not to send a plain quit() message yourself, 
+	 * instead call SCAudio.sendQuit() which tidies up the java part of the audio too. 
+	 */
 	public static OscMessage quitMessage() {
 		OscMessage theMessage = new OscMessage();
 		theMessage.add("/quit");

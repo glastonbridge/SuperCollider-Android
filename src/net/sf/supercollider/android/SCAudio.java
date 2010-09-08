@@ -44,11 +44,11 @@ public class SCAudio extends Thread {
 	 * The cycle looks like this:
 	 *   (1) before run() is invoked,     running==false and ended==true
 	 *   (2) when run() is invoked,       running==true  and ended==false  <-- audio driver main loop
-	 *   (3) upon ScService.quit(),       running==false and ended==false  <-- briefly, waiting for SC to tell us [/done /quit]
+	 *   (3) when sendQuit() is invoked,  running==false and ended==false  <-- briefly, waiting for SC to tell us [/done /quit]
 	 *   (4) when SC properly shuts down, running==false and ended==true
 	 */
-	protected boolean running=false; // set to true when run() is invoked, set to false by ScService.stop() (as well as sending a /quit msg)
-	protected boolean ended=true; // whether the audio thread really has stopped and tidied up or not
+	private boolean running=false; // set to true when run() is invoked, set to false by ScService.stop() (as well as sending a /quit msg)
+	private boolean ended=true; // whether the audio thread really has stopped and tidied up or not
 
 	// load and declare the NDK C++ methods
 	// Also load dependencies, as the native dlopen won't look in app directories
@@ -95,6 +95,15 @@ public class SCAudio extends Thread {
 	}
 	public boolean isEnded(){
 		return ended;
+	}
+	
+	/*
+	 * Tell the SuperCollider audio engine to quit, and gracefully exit the audio loop.
+	 * This is asynchronous.
+	 */
+	public void sendQuit(){
+		sendMessage(OscMessage.quitMessage());
+		running = false;
 	}
 	
 	/**

@@ -154,18 +154,17 @@ public class SuperColliderActivity extends Activity {
              );
 	}
 	
-	/*
 	@Override
 	public void onPause() {
 		super.onPause();
 		try {
 			// Free up audio when the activity is not in the foreground
 			if (superCollider!=null) superCollider.stop();
+			this.finish();
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 	}
-	*/
 	
 	@Override
 	public void onStop() {
