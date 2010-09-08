@@ -128,10 +128,10 @@ public class ScService extends Service {
     public void stop() {
 		try {
 			mBinder.sendMessage(OscMessage.quitMessage());
+			audioThread.running = false; // put the SCAudio.run() loop into quitting phase 
 		} catch (RemoteException re) {
 			re.printStackTrace();
 		} 
-//		audioThread.setRunning(false);
 		while(!audioThread.isEnded()){
 			try{
 				Thread.sleep(50L);

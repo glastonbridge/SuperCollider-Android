@@ -39,8 +39,16 @@ public class SCAudio extends Thread {
 	AudioRecord audioRecord; // input
 	AudioTrack audioTrack;   // output
 	
-	boolean running=false; // user-settable
-	boolean ended=false; // whether the audio thread really has stopped and tidied up or not
+	/*
+	 * Audio driver state variables.
+	 * The cycle looks like this:
+	 *   (1) before run() is invoked,     running==false and ended==true
+	 *   (2) when run() is invoked,       running==true  and ended==false  <-- audio driver main loop
+	 *   (3) upon ScService.quit(),       running==false and ended==false  <-- briefly, waiting for SC to tell us [/done /quit]
+	 *   (4) when SC properly shuts down, running==false and ended==true
+	 */
+	protected boolean running=false; // set to true when run() is invoked, set to false by ScService.stop() (as well as sending a /quit msg)
+	protected boolean ended=true; // whether the audio thread really has stopped and tidied up or not
 
 	// load and declare the NDK C++ methods
 	// Also load dependencies, as the native dlopen won't look in app directories
@@ -95,6 +103,7 @@ public class SCAudio extends Thread {
 	 */
 	public void run(){
 		running = true;
+		ended = false;
 		@SuppressWarnings("all") // the ternary operator does not contain dead code
 		int channelConfiguration = numOutChans==2?
 					AudioFormat.CHANNEL_CONFIGURATION_STEREO
@@ -176,7 +185,34 @@ public class SCAudio extends Thread {
 				Thread.yield();
 			}
 		}
-		// TODO: tell scsynth to stop, then let *it* call back to stop the audio running
+		
+		// QUITTING PHASE:
+		// running has been set to false (should be by ScService.stop())
+		// - this means /quit has been sent to the scsynth code, 
+		// so we wait for [/done, /quit] which tells us quit has nicely completed. 
+		OscMessage msgFromServer=null;
+		int triesToFail = 8; // should be plenty, it should only take 2 cycles (I think) max
+		for(int i=0; i<triesToFail; ++i){
+			while((!ended) && SCAudio.hasMessages()){
+				msgFromServer = SCAudio.getMessage();
+				if (msgFromServer != null) {
+					String firstToken = msgFromServer.get(0).toString();
+					if (firstToken.equals("/done")) {
+						String secondToken = msgFromServer.get(1).toString();
+						if (secondToken.equals("/quit")) {
+							ended = true;
+						}
+					}
+				}
+			}
+			// now invoke sc audio loop, though we're not reading/writing the actual audio
+			if(!ended) ndkReturnVal = scsynth_android_genaudio(audioBuf);
+		}
+    	
+    	if(!ended){
+    		Log.e(TAG, "SCAudio attempted quit but didn't detect [/done, /quit] response from supercollider engine. Was [/quit] sent to engine?");
+    	}
+		
 		audioTrack.stop();
 		audioTrack.release();
 		if(gotRecord){
