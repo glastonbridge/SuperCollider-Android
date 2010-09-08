@@ -82,9 +82,6 @@ public class SCAudio extends Thread {
 		scsynth_android_doOsc(oscMessage.toArray());
 	}
 	
-	public void setRunning(boolean val){
-		running = val;
-	}
 	public boolean isRunning(){
 		return running;
 	}
@@ -97,7 +94,7 @@ public class SCAudio extends Thread {
 	 * action is done in C++
 	 */
 	public void run(){
-		setRunning(true);
+		running = true;
 		@SuppressWarnings("all") // the ternary operator does not contain dead code
 		int channelConfiguration = numOutChans==2?
 					AudioFormat.CHANNEL_CONFIGURATION_STEREO
