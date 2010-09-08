@@ -181,6 +181,11 @@ public class SuperColliderActivity extends Activity {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		try {
+			superCollider.closeUDP();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
 		unbindService(conn);
 	}
 

@@ -27,6 +27,7 @@
 #include "OSCMessages.h"
 #include "sc_msg_iter.h"
 #include "SC_HiddenWorld.h"
+#include "SC_ComPort.h"
 #include "SC_CoreAudio.h"  // for SC_AndroidJNIAudioDriver
 
 #include <dirent.h>  // ONLY for the debug folder scanning
@@ -168,8 +169,34 @@ static World * world;
 static short* buff;
 static int bufflen;
 
+static SC_UdpInPort* udpInPort = NULL;
+/*
+ * this is like World_OpenUDP() except it stores a static reference to the object
+ * TODO: maybe we could destatickify by pass a reference to the object back to java, to be passed to the closer?
+ */
 extern "C" void scsynth_android_open_udp(JNIEnv* env, jobject obj, jint port) {
-	World_OpenUDP(world,port);
+	scprintf("scsynth_android_open_udp\n");
+	try {
+		udpInPort = new SC_UdpInPort(world, port);
+	} catch (std::exception& exc) {
+		scprintf("Exception in scsynth_android_open_udp: %s\n", exc.what());
+		udpInPort = NULL;
+	} catch (...) {
+	}
+}
+extern "C" void scsynth_android_close_udp(JNIEnv* env, jobject obj) {
+	scprintf("scsynth_android_close_udp\n");
+	if(udpInPort==NULL){
+		scprintf("scsynth_android_close_udp : no open port to close\n");
+		return;
+	}
+	try {
+		udpInPort->~SC_UdpInPort();
+		udpInPort = NULL;
+	} catch (std::exception& exc) {
+		scprintf("Exception in scsynth_android_close_udp: %s\n", exc.what());
+	} catch (...) {
+	}
 }
 
 extern "C" int scsynth_android_start(JNIEnv* env, jobject obj, 
@@ -371,6 +398,7 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 		// name, signature, function pointer
 		{ "scsynth_android_initlogging", "()V",   (void *) &scsynth_android_initlogging },
 		{ "scsynth_android_open_udp"   , "(I)V",  (void *) &scsynth_android_open_udp       },
+		{ "scsynth_android_close_udp"  , "()V",   (void *) &scsynth_android_close_udp      },
 		{ "scsynth_android_start"      , "(IIIIILjava/lang/String;Ljava/lang/String;)I",   (void *) &scsynth_android_start    },
 		{ "scsynth_android_genaudio"   , "([S)I", (void *) &scsynth_android_genaudio    },
 		{ "scsynth_android_makeSynth"  , "(Ljava/lang/String;)V",   (void *) &scsynth_android_makeSynth   },

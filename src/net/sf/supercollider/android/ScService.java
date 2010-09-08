@@ -47,6 +47,9 @@ public class ScService extends Service {
 		public void openUDP(int port) throws RemoteException {
 			ScService.this.audioThread.openUDP(port);
 		}
+		public void closeUDP() throws RemoteException {
+			ScService.this.audioThread.closeUDP();
+		}
 		public void sendQuit() throws RemoteException {
 			ScService.this.audioThread.sendQuit();
 		}
