@@ -173,6 +173,7 @@ public class SuperColliderActivity extends Activity {
 		try {
 			// Free up audio when the activity is not in the foreground
 			if (superCollider!=null) superCollider.stop();
+			this.finish();
 		} catch (RemoteException re) {
 			re.printStackTrace();
 		} 
