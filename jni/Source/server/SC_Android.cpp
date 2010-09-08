@@ -353,17 +353,6 @@ extern "C" void scsynth_android_doOsc(JNIEnv* env, jobject classobj, jobjectArra
     }
 }
 
-extern "C" void scsynth_android_quit(JNIEnv* env, jobject obj){
-    OSCMessages messages;
-    if (world && world->mRunning){
-         small_scpacket packet = messages.quitMessage();
-         World_SendPacket(world, 8,(char*)packet.buf, null_reply_func);
-    }else{
-    	scprintf("scsynth_android_quit: not running!\n");
-    }
-    if (buff) free(buff);
-}
-
 /** The main thing JNI_OnLoad does is register the functions so that JNI knows
 * how to invoke them. It's not necessary on Android but we'd have to use
 * horrible qualified function names otherwise. */
@@ -388,7 +377,6 @@ extern "C" jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 		{ "scsynth_android_doOsc"      , "([Ljava/lang/Object;)V", (void *) &scsynth_android_doOsc },
 		{ "scsynth_android_hasMessages", "()Z", (void *) &scsynth_android_hasMessages },
 		{ "scsynth_android_getMessage" , "()Lnet/sf/supercollider/android/OscMessage;", (void *) &scsynth_android_getMessage },
-		{ "scsynth_android_quit"       , "()V",   (void *) &scsynth_android_quit        },
 	};
 	env->RegisterNatives(cls, methods, sizeof(methods)/sizeof(methods[0]) );
 	return JNI_VERSION_1_4;
