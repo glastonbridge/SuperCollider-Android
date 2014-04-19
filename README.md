@@ -48,6 +48,7 @@ ant debug
 Install on a connected device or emulator:
 
 ```bash
-adb install -r bin/SuperColliderActivity-debug.apk # -r here forces a reintsall if the apk already exists on the target
+adb install -r bin/SuperColliderActivity-debug.apk 
+# -r here forces a reintsall if the apk already exists on the target
 ```
 Eclipse and release build left as excercises for the reader. Happy hacking!
