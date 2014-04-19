@@ -8,9 +8,10 @@ SuperCollider-Android port by Alex Shaw and Dan Stowell.
 http://github.com/glastonbridge/SuperCollider-Android
 
 ## Build Instructions (OS X)
-* Install the Android SDK. See https://developer.android.com/sdk/installing/index.html. Optionally, install Eclipse, although the instructions that
+Install the Android SDK. See https://developer.android.com/sdk/installing/index.html. Optionally, install Eclipse, although the instructions that
 follow describe buildling from the command line.
-* If building from the command-line, install Apache ant. If homebrew is installed:
+
+If building from the command-line, install Apache ant. If homebrew is installed:
 
 ```bash
 brew install ant
