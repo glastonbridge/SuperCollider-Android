@@ -7,7 +7,9 @@ Published under the terms of the GNU GPL, version 2 or later. Some code is GPL3+
 SuperCollider-Android port by Alex Shaw and Dan Stowell.
 http://github.com/glastonbridge/SuperCollider-Android
 
-## Build Instructions (OS X)
+## Build Instructions
+**NOTE: this was tested on OS X. It should work similarly on Linux with some minor changes (ant installation, etc)**
+
 Install the Android SDK. See https://developer.android.com/sdk/installing/index.html. Optionally, install Eclipse, although the instructions that
 follow describe buildling from the command line.
 
