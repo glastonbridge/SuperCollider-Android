@@ -16,7 +16,7 @@ If building from the command-line, install Apache ant. If homebrew is installed:
 ```bash
 brew install ant
 ```
-This project is uses the Crystax NDK rather than the standard Android NDK. Download it from https://www.crystax.net/android/ndk.php. Extract and follow the installation instructions in docs/INSTALL.html.
+This project uses the Crystax NDK rather than the standard Android NDK. Download it from https://www.crystax.net/android/ndk.php. Extract and follow the installation instructions in docs/INSTALL.html.
 
 For convenience, add the location of the NDK to your PATH (optional).
 
