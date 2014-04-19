@@ -12,9 +12,9 @@ http://github.com/glastonbridge/SuperCollider-Android
 follow describe buildling from the command line.
 2. If building from the command-line, install Apache ant. If homebrew is installed:
 
-      ```
-      brew install ant
-      ```
+```bash
+brew install ant
+```
 3. This project is uses the Crystax NDK rather than the standard Android NDK. Download it from https://www.crystax.net/android/ndk.php. Extract and follow the installation instructions in docs/INSTALL.html.
 4. For convenience, add the location of the NDK to your PATH (optional).
 5. From the root SuperCollider-Android project directory:
