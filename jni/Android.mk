@@ -7,6 +7,7 @@ include $(CLEAR_VARS)
 LOCAL_LDLIBS    += -L$(SYSROOT)/usr/lib -ldl -llog
 LOCAL_SHARED_LIBRARIES = libsndfile
 LOCAL_MODULE    := scsynth
+LOCAL_CPP_FEATURES += exceptions
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/server
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/plugin_interface
 LOCAL_C_INCLUDES+= $(LOCAL_PATH)/Headers/common
