@@ -22,7 +22,7 @@ import android.os.Parcelable;
  */
 public final class OscMessage implements Parcelable {
 	
-	public static final int defaultNodeId = 1000; 
+	public static final int defaultNodeId = 999;
 
 	///////////////////////////////////////////////////////////////////////////
 	// Static templates for common operations
