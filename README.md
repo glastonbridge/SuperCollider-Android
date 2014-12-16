@@ -3,6 +3,7 @@
 SuperCollider is copyright James McCartney and many different authors
 Published under the terms of the GNU GPL, version 2 or later. Some code is GPL3+ so the overall bundle will typically be GPL3+.
 
+This version is based on Supercollider 3.5.  Synthdefs created using Supercollider 3.6 will usually fail to load.
 
 SuperCollider-Android port by Alex Shaw and Dan Stowell.
 http://github.com/glastonbridge/SuperCollider-Android
